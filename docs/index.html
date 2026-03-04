@@ -49,6 +49,87 @@
   </nav>
 
   <main class="max-w-7xl mx-auto px-6 py-6">
+    <!-- How to Read This Dashboard -->
+    <details class="mb-6 card border-blue-500/20 cursor-pointer group" id="guide-panel">
+      <summary class="flex items-center gap-2 text-sm font-semibold text-blue-300 select-none">
+        <span>📖</span> How to Read This Dashboard
+        <span class="text-xs bg-blue-600/20 text-blue-400 px-2 py-0.5 rounded-full border border-blue-600/30 ml-auto group-open:hidden">click to expand</span>
+      </summary>
+      <div class="mt-4 space-y-4 text-sm text-slate-300 leading-relaxed">
+
+        <div>
+          <h4 class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">🎯 What is this?</h4>
+          <p>This is a <span class="text-blue-400 font-medium">paper trading</span> dashboard — no real money is at risk. We're testing whether a statistical model (Elo ratings) can spot mispriced bets on <span class="text-blue-400">Polymarket</span>, a prediction market where people buy and sell shares on sports outcomes. If our model consistently finds real edges, we'd graduate to real money.</p>
+        </div>
+
+        <div>
+          <h4 class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">🧠 How the model decides to trade</h4>
+          <p>The system uses <span class="text-blue-400 font-medium">three-source triangulation</span>:</p>
+          <ol class="list-decimal list-inside ml-2 mt-1 space-y-1 text-slate-400">
+            <li><strong class="text-slate-300">Elo Model</strong> — Our own rating system trained on thousands of games. It produces a win probability for each team.</li>
+            <li><strong class="text-slate-300">Polymarket price</strong> — What the betting market thinks the probability is. A share priced at $0.65 means the market thinks there's a 65% chance.</li>
+            <li><strong class="text-slate-300">Sportsbooks</strong> (Vegas) — What professional bookmakers think. Used as a tiebreaker.</li>
+          </ol>
+          <p class="mt-2">We trade when our Elo model disagrees with Polymarket by more than 7%. For example: if Elo says a team has a 70% chance of winning but Polymarket prices it at 60%, that's a 10% edge — we'd buy.</p>
+        </div>
+
+        <div>
+          <h4 class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">📊 Reading the stats</h4>
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-3 mt-2">
+            <div class="bg-slate-800/50 rounded-lg p-3">
+              <div class="text-xs text-blue-400 font-medium mb-1">Total P&L</div>
+              <p class="text-xs text-slate-400">If we'd bet real money, how much we'd be up or down total. Green = profit, red = loss.</p>
+            </div>
+            <div class="bg-slate-800/50 rounded-lg p-3">
+              <div class="text-xs text-blue-400 font-medium mb-1">Bankroll</div>
+              <p class="text-xs text-slate-400">Our simulated bankroll (started at $200). Goes up when we win, down when we lose.</p>
+            </div>
+            <div class="bg-slate-800/50 rounded-lg p-3">
+              <div class="text-xs text-blue-400 font-medium mb-1">Brier Score</div>
+              <p class="text-xs text-slate-400">Measures how accurate our probability predictions are. <strong>0.00</strong> = perfect, <strong>0.25</strong> = as good as flipping a coin, <strong>lower is better</strong>. Under 0.22 is considered good.</p>
+            </div>
+            <div class="bg-slate-800/50 rounded-lg p-3">
+              <div class="text-xs text-blue-400 font-medium mb-1">ROI (Return on Investment)</div>
+              <p class="text-xs text-slate-400">Profit divided by total amount wagered, as a percentage. Positive = we're making money on average.</p>
+            </div>
+          </div>
+        </div>
+
+        <div>
+          <h4 class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">📋 Reading the trades table</h4>
+          <div class="space-y-2 mt-2">
+            <div class="flex gap-2"><span class="text-blue-400 font-mono text-xs min-w-[70px]">Dir (YES)</span><span class="text-xs text-slate-400">— Betting the away team wins. In Polymarket, YES = the first team listed (away team).</span></div>
+            <div class="flex gap-2"><span class="text-red-400 font-mono text-xs min-w-[70px]">Dir (NO)</span><span class="text-xs text-slate-400">— Betting the home team wins. We're saying "no, the away team won't win."</span></div>
+            <div class="flex gap-2"><span class="text-slate-300 font-mono text-xs min-w-[70px]">Entry $</span><span class="text-xs text-slate-400">— Price per share. If we buy at $0.40 and win, we get $1.00 back (profit = $0.60 per share).</span></div>
+            <div class="flex gap-2"><span class="text-slate-300 font-mono text-xs min-w-[70px]">Elo %</span><span class="text-xs text-slate-400">— What our model thinks the true probability is that this team wins. The bigger the gap between this and the entry price, the more "edge" we think we have.</span></div>
+            <div class="flex gap-2"><span class="text-slate-300 font-mono text-xs min-w-[70px]">Size</span><span class="text-xs text-slate-400">— How much we bet. Determined by the Kelly Criterion — bets more when the edge is bigger and our confidence is higher.</span></div>
+          </div>
+        </div>
+
+        <div>
+          <h4 class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">⚖️ What "sportsbooks agree with Polymarket" means</h4>
+          <p>When we find an edge (our model disagrees with Polymarket), we check what Vegas thinks. There are three scenarios:</p>
+          <div class="mt-2 space-y-2">
+            <div class="flex gap-2 items-start"><span class="text-emerald-400">🟢</span><span class="text-xs text-slate-400"><strong class="text-slate-300">Elo + Vegas agree, Polymarket disagrees</strong> — Strongest signal. Two independent sources say the market is wrong. High confidence trade.</span></div>
+            <div class="flex gap-2 items-start"><span class="text-amber-400">🟡</span><span class="text-xs text-slate-400"><strong class="text-slate-300">Only Elo disagrees</strong> — Our model sees something the market and Vegas don't. Could be a real edge, or our model could be wrong. Medium confidence.</span></div>
+            <div class="flex gap-2 items-start"><span class="text-red-400">🔴</span><span class="text-xs text-slate-400"><strong class="text-slate-300">Polymarket + Vegas + Elo all agree</strong> — No edge. The market is efficient. We don't trade.</span></div>
+          </div>
+          <p class="mt-2 text-xs text-slate-500 italic">When we say "sportsbooks agree with Polymarket, not Elo" — it means Vegas and the betting market both think our model is wrong. We still paper trade to test if our model catches something they miss, but it's a yellow/orange flag.</p>
+        </div>
+
+        <div>
+          <h4 class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">👻 What are shadow trades?</h4>
+          <p>Shadow trades are bets our model said <strong class="text-purple-400">NO</strong> to — the edge wasn't big enough, or the signal was too weak. We track them anyway with fake $10 bets to learn from them. If shadow trades keep winning, it means our model is being too picky and we should lower our thresholds. They don't affect the bankroll.</p>
+        </div>
+
+        <div>
+          <h4 class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">🏆 Elo Ratings explained</h4>
+          <p>Elo is a rating system (originally from chess) where every team starts at 1500. When you beat a strong team, you gain more points; when you lose to a weak team, you lose more. After thousands of games, the ratings reflect each team's true strength. We use this to predict game outcomes independent of what the market thinks.</p>
+        </div>
+
+      </div>
+    </details>
+
     <!-- Stats Row -->
     <div id="stats-row" class="grid grid-cols-2 md:grid-cols-5 gap-4 mb-6">
       <div class="card text-center"><div class="shimmer mb-2"></div><div class="stat-label">Total P&L</div></div>
@@ -306,6 +387,7 @@ function renderPerformance(data) {
         <div class="text-lg font-bold ${brierColor}">${b}</div>
         <div class="text-xs text-slate-400">Brier Score</div>
         <div class="text-xs text-slate-500 mt-0.5">${brierLabel}</div>
+        <div class="text-xs text-slate-600 mt-1">0 = perfect · &lt;0.22 = good · 0.25 = coin flip</div>
       </div>
       <div class="bg-slate-800/50 rounded-lg p-3 text-center">
         <div class="text-lg font-bold ${pnlColor(s.roi)}">${fmt(s.roi,1)}%</div>
@@ -343,7 +425,8 @@ function renderPerformance(data) {
 
   // Calibration
   if (data.calibration && data.calibration.length) {
-    html += `<h4 class="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2 mt-4">Calibration</h4>
+    html += `<h4 class="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1 mt-4">Calibration</h4>
+      <p class="text-xs text-slate-600 mb-2">When we predict 70%, do those teams actually win ~70% of the time? ✅ = well-calibrated.</p>
       <table class="w-full text-sm"><thead><tr class="text-xs text-slate-400 border-b border-slate-700/50">
         <th class="text-right py-1">Predicted</th><th class="text-right py-1">Actual</th>
         <th class="text-right py-1">Count</th><th class="text-center py-1">Status</th>
