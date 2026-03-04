@@ -3,8 +3,10 @@
 Paper Trading System for Polymarket — Automated Edge Detection & Simulation
 
 Usage:
-  python3 paper_trader.py scan              # Scan today's games, place paper trades
-  python3 paper_trader.py scan --league nba  # Scan NBA only
+  python3 paper_trader.py scan              # Scan today's games for Elo signals
+  python3 paper_trader.py scan --league nba # Scan NBA only
+  python3 paper_trader.py trade --slug <slug> --team <team> --direction <YES|NO> \\
+      --elo-prob <prob> --poly-price <price>  # Place trade with real BBO
   python3 paper_trader.py results            # Show recent paper trade results
   python3 paper_trader.py resolve            # Resolve completed games
   python3 paper_trader.py portfolio          # Show paper portfolio status
@@ -237,60 +239,96 @@ def scan_and_trade(league=None):
             signal = "⭐ STRONG" if max_dev > 0.25 else "🔶 MOD" if max_dev > 0.15 else "⚪ WEAK"
             print(f"  {matchup:<25} {elo_away:>9.1f} {elo_home:>9.1f} {max_dev*100:>6.1f}% {signal}")
 
-    # Automatically place paper trades for strong signals
+    # Print strong signals — agent must provide real BBO prices to place trades
     strong_opps = [o for o in all_opportunities if o['signal'] == 'STRONG']
-    trades_placed = 0
 
     if strong_opps:
         print(f"\n{'═' * 70}")
-        print(f"  PAPER TRADES PLACED")
+        print(f"  STRONG SIGNALS (need real Polymarket BBO to trade)")
         print(f"{'═' * 70}")
+        print(f"  {'Team':<6} {'Dir':<4} {'Elo%':>6} {'Slug'}")
+        print(f"  {'─'*6} {'─'*4} {'─'*6} {'─'*40}")
 
         for opp in sorted(strong_opps, key=lambda x: -x['deviation']):
-            if todays_trades + trades_placed >= MAX_DAILY_TRADES:
-                break
+            print(f"  {opp['team']:<6} {opp['direction']:<4} "
+                  f"{opp['elo_prob']*100:>5.1f}% {opp['slug']}")
 
-            # Simulate a market price based on Elo (assume Polymarket is ~5% less extreme)
-            # In real usage, this would be replaced with actual Polymarket BBO
-            simulated_poly_price = 0.50  # placeholder — real BBO would go here
-            elo_prob = opp['elo_prob']
-
-            # For the paper trade, use Elo as our probability estimate
-            # and assume a simulated "market price" to calculate Kelly
-            # Price = probability the market implies
-            market_price = max(0.50, min(0.95, elo_prob - EDGE_THRESHOLD))  # assume we get edge
-            f, position, shares = kelly_size(elo_prob, market_price, bankroll)
-
-            if position < MIN_POSITION:
-                continue
-
-            trade_id = f"pt-{opp['league']}-{opp['team']}-{datetime.now().strftime('%Y%m%d-%H%M%S')}-{uuid.uuid4().hex[:4]}"
-
-            db.execute("""
-                INSERT INTO paper_trades
-                (id, date, league, market_slug, team, direction, entry_price,
-                 elo_probability, polymarket_price, edge_vs_poly, kelly_fraction,
-                 paper_amount, paper_shares)
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-            """, (
-                trade_id, today, opp['league'], opp['slug'], opp['team'],
-                opp['direction'], market_price, elo_prob,
-                simulated_poly_price, elo_prob - simulated_poly_price,
-                f, position, shares,
-            ))
-
-            print(f"  ✅ {opp['direction']} {opp['team']} ({opp['league'].upper()}) "
-                  f"@ ${market_price:.2f} | Elo: {elo_prob*100:.1f}% | "
-                  f"Size: ${position:.2f} ({f*100:.1f}% bankroll)")
-            trades_placed += 1
-            bankroll -= position
-
-        db.commit()
-        print(f"\n  📊 {trades_placed} paper trades placed. Remaining bankroll: ${bankroll:.2f}")
+        print(f"\n  ⚠️  To place trades, use: paper_trader.py trade --slug <slug> "
+              f"--poly-price <bbo_price>")
     else:
-        print(f"\n  ⚪ No strong signals found. No paper trades placed.")
+        print(f"\n  ⚪ No strong signals found.")
 
-    return trades_placed
+    return strong_opps
+
+
+def place_paper_trade(slug, team, direction, elo_prob, poly_price, league=None):
+    """
+    Place a single paper trade with real Polymarket BBO price.
+    Called by the agent after fetching actual market data.
+
+    Args:
+        slug: Polymarket market slug
+        team: Team abbreviation we're betting on
+        direction: 'YES' or 'NO' (market side)
+        elo_prob: Our Elo-based win probability for the team
+        poly_price: Real Polymarket price (from BBO mid-price)
+        league: Sport league (inferred from slug if omitted)
+    """
+    db = get_db()
+    today = datetime.now().strftime("%Y-%m-%d")
+
+    if league is None:
+        parts = slug.split('-')
+        league = parts[1] if len(parts) > 1 else 'nba'
+
+    # Calculate edge against real market price
+    edge_raw = elo_prob - poly_price
+    edge_net = abs(edge_raw) - FRICTION_BUFFER
+
+    if edge_net < EDGE_THRESHOLD:
+        print(f"  ⚪ No edge: Elo={elo_prob:.1%} vs Poly={poly_price:.1%} "
+              f"(net edge {edge_net:.1%} < {EDGE_THRESHOLD:.0%} threshold)")
+        return None
+
+    # Check daily limits
+    todays_trades = get_todays_trade_count(db)
+    if todays_trades >= MAX_DAILY_TRADES:
+        print(f"  ⚠️  Daily trade limit reached ({MAX_DAILY_TRADES}).")
+        return None
+
+    bankroll = get_current_bankroll(db)
+
+    # Entry price = real Polymarket price (what we'd actually pay)
+    entry_price = poly_price
+    f, position, shares = kelly_size(elo_prob, entry_price, bankroll)
+
+    if position < MIN_POSITION:
+        print(f"  ⚪ Position too small: ${position:.2f} < ${MIN_POSITION:.2f}")
+        return None
+
+    trade_id = (f"pt-{league}-{team}-"
+                f"{datetime.now().strftime('%Y%m%d-%H%M%S')}-"
+                f"{uuid.uuid4().hex[:4]}")
+
+    db.execute("""
+        INSERT INTO paper_trades
+        (id, date, league, market_slug, team, direction, entry_price,
+         elo_probability, polymarket_price, edge_vs_poly, kelly_fraction,
+         paper_amount, paper_shares)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    """, (
+        trade_id, today, league, slug, team,
+        direction, entry_price, elo_prob,
+        poly_price, edge_raw,
+        f, position, shares,
+    ))
+    db.commit()
+
+    print(f"  ✅ {direction} {team} ({league.upper()}) "
+          f"@ ${entry_price:.2f} (Poly: ${poly_price:.2f}) | "
+          f"Elo: {elo_prob*100:.1f}% | Edge: {edge_net*100:.1f}% | "
+          f"Size: ${position:.2f} ({f*100:.1f}% bankroll)")
+    return trade_id
 
 
 def resolve_trades():
@@ -329,11 +367,9 @@ def resolve_trades():
         else:
             won = game['away_score'] > game['home_score']
 
-        # For YES direction: win if team won; for NO: win if team lost
-        if trade['direction'] == 'YES':
-            trade_won = won
-        else:
-            trade_won = not won
+        # We always bet ON our team winning (YES=away wins, NO=home wins).
+        # `won` tracks whether our team won, so trade_won = won always.
+        trade_won = won
 
         # Calculate P&L
         entry_price = trade['entry_price']
@@ -460,6 +496,34 @@ if __name__ == "__main__":
             if idx + 1 < len(args):
                 league = args[idx + 1].lower()
         scan_and_trade(league)
+
+    elif cmd == 'trade':
+        # Parse trade arguments
+        def get_arg(name):
+            if name in args:
+                idx = args.index(name)
+                if idx + 1 < len(args):
+                    return args[idx + 1]
+            return None
+
+        slug = get_arg('--slug')
+        team = get_arg('--team')
+        direction = get_arg('--direction')
+        elo_prob = get_arg('--elo-prob')
+        poly_price = get_arg('--poly-price')
+        league = get_arg('--league')
+
+        if not all([slug, team, direction, elo_prob, poly_price]):
+            print("  ❌ Missing required arguments.")
+            print("  Usage: paper_trader.py trade --slug <slug> --team <team> "
+                  "--direction <YES|NO> --elo-prob <prob> --poly-price <price>")
+            sys.exit(1)
+
+        place_paper_trade(
+            slug=slug, team=team.upper(), direction=direction.upper(),
+            elo_prob=float(elo_prob), poly_price=float(poly_price),
+            league=league,
+        )
 
     elif cmd == 'resolve':
         resolved = resolve_trades()

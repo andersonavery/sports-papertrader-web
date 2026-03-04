@@ -38,9 +38,9 @@
       "kelly_fraction": 0.05,
       "paper_amount": 10.0,
       "paper_shares": 11.434496440219979,
-      "outcome": "LOSS",
+      "outcome": "WIN",
       "closing_price": null,
-      "pnl": -10.0,
+      "pnl": 1.4344964402199782,
       "resolved_at": "2026-03-04 14:25:21",
       "created_at": "2026-03-03 19:25:22"
     },
@@ -60,9 +60,9 @@
       "kelly_fraction": 0.05,
       "paper_amount": 9.5,
       "paper_shares": 11.059426515978181,
-      "outcome": "LOSS",
+      "outcome": "WIN",
       "closing_price": null,
-      "pnl": -9.5,
+      "pnl": 1.559426515978181,
       "resolved_at": "2026-03-04 14:25:21",
       "created_at": "2026-03-03 19:25:22"
     },
@@ -82,9 +82,9 @@
       "kelly_fraction": 0.05,
       "paper_amount": 9.025,
       "paper_shares": 10.973516873077726,
-      "outcome": "LOSS",
+      "outcome": "WIN",
       "closing_price": null,
-      "pnl": -9.025,
+      "pnl": 1.9485168730777251,
       "resolved_at": "2026-03-04 14:25:21",
       "created_at": "2026-03-03 19:25:22"
     },
@@ -114,13 +114,13 @@
   "stats": {
     "total": 5,
     "resolved": 4,
-    "wins": 1,
-    "losses": 3,
+    "wins": 4,
+    "losses": 0,
     "open": 1,
-    "total_pnl": -26.62,
-    "win_rate": 25.0,
-    "roi": -71.7,
-    "bankroll": 169.62,
+    "total_pnl": 6.85,
+    "win_rate": 100.0,
+    "roi": 18.5,
+    "bankroll": 203.09,
     "starting_bankroll": 200.0
   },
   "nba_ratings": [
@@ -697,48 +697,48 @@
   "pnl_series": [
     {
       "date": "2026-03-03",
-      "pnl": -10.0,
-      "cumulative": -10.0
+      "pnl": 1.43,
+      "cumulative": 1.43
     },
     {
       "date": "2026-03-03",
-      "pnl": -9.5,
-      "cumulative": -19.5
+      "pnl": 1.56,
+      "cumulative": 2.99
     },
     {
       "date": "2026-03-03",
-      "pnl": -9.03,
-      "cumulative": -28.52
+      "pnl": 1.95,
+      "cumulative": 4.94
     },
     {
       "date": "2026-03-03",
       "pnl": 1.91,
-      "cumulative": -26.62
+      "cumulative": 6.85
     }
   ],
   "calibration": [
     {
       "predicted": 90,
-      "actual": 25.0,
+      "actual": 100.0,
       "count": 4
     }
   ],
-  "brier": 0.6149,
+  "brier": 0.0119,
   "sport_breakdown": [
     {
       "league": "NBA",
       "total": 4,
-      "wins": 1,
-      "losses": 3,
-      "win_rate": 25.0,
-      "pnl": -26.62,
-      "brier": 0.6149
+      "wins": 4,
+      "losses": 0,
+      "win_rate": 100.0,
+      "pnl": 6.85,
+      "brier": 0.0119
     }
   ],
   "risk": {
-    "max_drawdown": 28.52,
-    "max_loss_streak": 3,
+    "max_drawdown": 0,
+    "max_loss_streak": 0,
     "avg_trade_size": 9.27
   },
-  "last_updated": "2026-03-04T14:26:27.347500+00:00"
+  "last_updated": "2026-03-04T14:42:46.746836+00:00"
 }
