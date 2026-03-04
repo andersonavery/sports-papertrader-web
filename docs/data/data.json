@@ -1,6 +1,28 @@
 {
   "trades": [
     {
+      "id": "59b9efd3",
+      "date": "2026-03-03",
+      "league": "nba",
+      "market_slug": "aec-nba-pho-sac-2026-03-03",
+      "team": "SAC",
+      "direction": "NO",
+      "entry_price": 0.23,
+      "elo_probability": 0.301,
+      "sportsbook_probability": null,
+      "polymarket_price": 0.23,
+      "edge_vs_poly": 0.071,
+      "edge_vs_sportsbook": null,
+      "kelly_fraction": 0.25,
+      "paper_amount": 3.76,
+      "paper_shares": 16.34782608695652,
+      "outcome": null,
+      "closing_price": null,
+      "pnl": null,
+      "resolved_at": null,
+      "created_at": "2026-03-03T22:17:48.001332"
+    },
+    {
       "id": "pt-nba-CHA-20260303-142522-ea41",
       "date": "2026-03-03",
       "league": "nba",
@@ -90,44 +112,44 @@
     }
   ],
   "stats": {
-    "total": 4,
+    "total": 5,
     "resolved": 0,
     "wins": 0,
     "losses": 0,
-    "open": 4,
+    "open": 5,
     "total_pnl": 0,
     "win_rate": 0,
     "roi": 0,
-    "bankroll": 162.9,
+    "bankroll": 159.14,
     "starting_bankroll": 200.0
   },
   "nba_ratings": [
     {
       "team": "SAS",
       "league": "nba",
-      "rating": 1760.7,
-      "games_played": 141,
-      "wins": 76,
+      "rating": 1782.2,
+      "games_played": 142,
+      "wins": 77,
       "losses": 65,
-      "updated_at": "2026-03-03 19:21:23"
-    },
-    {
-      "team": "DET",
-      "league": "nba",
-      "rating": 1760.0,
-      "games_played": 141,
-      "wins": 89,
-      "losses": 52,
-      "updated_at": "2026-03-03 19:21:23"
+      "updated_at": "2026-03-04 03:14:10"
     },
     {
       "team": "OKC",
       "league": "nba",
-      "rating": 1746.9,
-      "games_played": 145,
-      "wins": 115,
+      "rating": 1752.4,
+      "games_played": 146,
+      "wins": 116,
       "losses": 30,
-      "updated_at": "2026-03-03 19:21:23"
+      "updated_at": "2026-03-04 03:14:10"
+    },
+    {
+      "team": "DET",
+      "league": "nba",
+      "rating": 1745.9,
+      "games_played": 142,
+      "wins": 89,
+      "losses": 53,
+      "updated_at": "2026-03-04 03:14:10"
     },
     {
       "team": "BOS",
@@ -136,34 +158,34 @@
       "games_played": 143,
       "wins": 102,
       "losses": 41,
-      "updated_at": "2026-03-03 19:21:23"
-    },
-    {
-      "team": "CLE",
-      "league": "nba",
-      "rating": 1698.0,
-      "games_played": 144,
-      "wins": 102,
-      "losses": 42,
-      "updated_at": "2026-03-03 19:21:23"
+      "updated_at": "2026-03-04 03:14:10"
     },
     {
       "team": "NYK",
       "league": "nba",
-      "rating": 1697.0,
-      "games_played": 143,
-      "wins": 90,
+      "rating": 1714.2,
+      "games_played": 144,
+      "wins": 91,
       "losses": 53,
-      "updated_at": "2026-03-03 19:21:23"
+      "updated_at": "2026-03-04 03:14:10"
+    },
+    {
+      "team": "CLE",
+      "league": "nba",
+      "rating": 1712.1,
+      "games_played": 145,
+      "wins": 103,
+      "losses": 42,
+      "updated_at": "2026-03-04 03:14:10"
     },
     {
       "team": "CHA",
       "league": "nba",
-      "rating": 1650.7,
-      "games_played": 143,
-      "wins": 49,
+      "rating": 1654.9,
+      "games_played": 144,
+      "wins": 50,
       "losses": 94,
-      "updated_at": "2026-03-03 19:21:23"
+      "updated_at": "2026-03-04 03:14:10"
     },
     {
       "team": "HOU",
@@ -172,16 +194,16 @@
       "games_played": 141,
       "wins": 90,
       "losses": 51,
-      "updated_at": "2026-03-03 19:21:23"
+      "updated_at": "2026-03-04 03:14:10"
     },
     {
       "team": "MIN",
       "league": "nba",
-      "rating": 1612.0,
-      "games_played": 143,
-      "wins": 87,
+      "rating": 1615.1,
+      "games_played": 144,
+      "wins": 88,
       "losses": 56,
-      "updated_at": "2026-03-03 19:21:23"
+      "updated_at": "2026-03-04 03:14:10"
     },
     {
       "team": "LAC",
@@ -190,7 +212,7 @@
       "games_played": 142,
       "wins": 79,
       "losses": 63,
-      "updated_at": "2026-03-03 19:21:23"
+      "updated_at": "2026-03-04 03:14:10"
     },
     {
       "team": "DEN",
@@ -199,7 +221,16 @@
       "games_played": 144,
       "wins": 88,
       "losses": 56,
-      "updated_at": "2026-03-03 19:21:23"
+      "updated_at": "2026-03-04 03:14:10"
+    },
+    {
+      "team": "MIA",
+      "league": "nba",
+      "rating": 1550.3,
+      "games_played": 144,
+      "wins": 70,
+      "losses": 74,
+      "updated_at": "2026-03-04 03:14:10"
     },
     {
       "team": "LAL",
@@ -208,34 +239,25 @@
       "games_played": 142,
       "wins": 86,
       "losses": 56,
-      "updated_at": "2026-03-03 19:21:23"
-    },
-    {
-      "team": "MIA",
-      "league": "nba",
-      "rating": 1545.3,
-      "games_played": 143,
-      "wins": 69,
-      "losses": 74,
-      "updated_at": "2026-03-03 19:21:23"
+      "updated_at": "2026-03-04 03:14:10"
     },
     {
       "team": "TOR",
       "league": "nba",
-      "rating": 1544.3,
-      "games_played": 142,
+      "rating": 1527.0,
+      "games_played": 143,
       "wins": 65,
-      "losses": 77,
-      "updated_at": "2026-03-03 19:21:23"
+      "losses": 78,
+      "updated_at": "2026-03-04 03:14:10"
     },
     {
       "team": "PHI",
       "league": "nba",
-      "rating": 1530.7,
-      "games_played": 142,
+      "rating": 1509.1,
+      "games_played": 143,
       "wins": 57,
-      "losses": 85,
-      "updated_at": "2026-03-03 19:21:23"
+      "losses": 86,
+      "updated_at": "2026-03-04 03:14:10"
     },
     {
       "team": "ATL",
@@ -244,7 +266,7 @@
       "games_played": 143,
       "wins": 71,
       "losses": 72,
-      "updated_at": "2026-03-03 19:21:23"
+      "updated_at": "2026-03-04 03:14:10"
     },
     {
       "team": "PHX",
@@ -253,7 +275,16 @@
       "games_played": 142,
       "wins": 70,
       "losses": 72,
-      "updated_at": "2026-03-03 19:21:23"
+      "updated_at": "2026-03-04 03:14:10"
+    },
+    {
+      "team": "ORL",
+      "league": "nba",
+      "rating": 1467.2,
+      "games_played": 142,
+      "wins": 73,
+      "losses": 69,
+      "updated_at": "2026-03-04 03:14:10"
     },
     {
       "team": "POR",
@@ -262,16 +293,7 @@
       "games_played": 144,
       "wins": 65,
       "losses": 79,
-      "updated_at": "2026-03-03 19:21:23"
-    },
-    {
-      "team": "ORL",
-      "league": "nba",
-      "rating": 1460.1,
-      "games_played": 141,
-      "wins": 72,
-      "losses": 69,
-      "updated_at": "2026-03-03 19:21:23"
+      "updated_at": "2026-03-04 03:14:10"
     },
     {
       "team": "GSW",
@@ -280,7 +302,7 @@
       "games_played": 143,
       "wins": 79,
       "losses": 64,
-      "updated_at": "2026-03-03 19:21:23"
+      "updated_at": "2026-03-04 03:14:10"
     },
     {
       "team": "MIL",
@@ -289,7 +311,7 @@
       "games_played": 143,
       "wins": 74,
       "losses": 69,
-      "updated_at": "2026-03-03 19:21:23"
+      "updated_at": "2026-03-04 03:14:10"
     },
     {
       "team": "NOP",
@@ -298,34 +320,34 @@
       "games_played": 144,
       "wins": 40,
       "losses": 104,
-      "updated_at": "2026-03-03 19:21:23"
+      "updated_at": "2026-03-04 03:14:10"
     },
     {
       "team": "MEM",
       "league": "nba",
-      "rating": 1378.0,
-      "games_played": 141,
+      "rating": 1374.9,
+      "games_played": 142,
       "wins": 71,
-      "losses": 70,
-      "updated_at": "2026-03-03 19:21:23"
+      "losses": 71,
+      "updated_at": "2026-03-04 03:14:10"
     },
     {
       "team": "CHI",
       "league": "nba",
-      "rating": 1319.9,
-      "games_played": 143,
+      "rating": 1314.4,
+      "games_played": 144,
       "wins": 64,
-      "losses": 79,
-      "updated_at": "2026-03-03 19:21:23"
+      "losses": 80,
+      "updated_at": "2026-03-04 03:14:10"
     },
     {
       "team": "DAL",
       "league": "nba",
-      "rating": 1315.4,
-      "games_played": 142,
+      "rating": 1311.2,
+      "games_played": 143,
       "wins": 60,
-      "losses": 82,
-      "updated_at": "2026-03-03 19:21:23"
+      "losses": 83,
+      "updated_at": "2026-03-04 03:14:10"
     },
     {
       "team": "SAC",
@@ -334,25 +356,25 @@
       "games_played": 144,
       "wins": 54,
       "losses": 90,
-      "updated_at": "2026-03-03 19:21:23"
-    },
-    {
-      "team": "WAS",
-      "league": "nba",
-      "rating": 1245.8,
-      "games_played": 142,
-      "wins": 34,
-      "losses": 108,
-      "updated_at": "2026-03-03 19:21:23"
+      "updated_at": "2026-03-04 03:14:10"
     },
     {
       "team": "BKN",
       "league": "nba",
-      "rating": 1245.5,
-      "games_played": 142,
+      "rating": 1240.5,
+      "games_played": 143,
       "wins": 41,
-      "losses": 101,
-      "updated_at": "2026-03-03 19:21:23"
+      "losses": 102,
+      "updated_at": "2026-03-04 03:14:10"
+    },
+    {
+      "team": "WAS",
+      "league": "nba",
+      "rating": 1238.7,
+      "games_played": 143,
+      "wins": 34,
+      "losses": 109,
+      "updated_at": "2026-03-04 03:14:10"
     },
     {
       "team": "UTA",
@@ -361,7 +383,7 @@
       "games_played": 143,
       "wins": 35,
       "losses": 108,
-      "updated_at": "2026-03-03 19:21:23"
+      "updated_at": "2026-03-04 03:14:10"
     },
     {
       "team": "IND",
@@ -370,7 +392,7 @@
       "games_played": 144,
       "wins": 66,
       "losses": 78,
-      "updated_at": "2026-03-03 19:21:23"
+      "updated_at": "2026-03-04 03:14:10"
     }
   ],
   "nhl_ratings": [
@@ -381,7 +403,7 @@
       "games_played": 149,
       "wins": 87,
       "losses": 62,
-      "updated_at": "2026-03-03 19:27:38"
+      "updated_at": "2026-03-04 03:14:10"
     },
     {
       "team": "COL",
@@ -390,7 +412,7 @@
       "games_played": 153,
       "wins": 93,
       "losses": 60,
-      "updated_at": "2026-03-03 19:27:38"
+      "updated_at": "2026-03-04 03:14:10"
     },
     {
       "team": "DAL",
@@ -399,7 +421,7 @@
       "games_played": 162,
       "wins": 97,
       "losses": 65,
-      "updated_at": "2026-03-03 19:27:38"
+      "updated_at": "2026-03-04 03:14:10"
     },
     {
       "team": "CAR",
@@ -408,7 +430,16 @@
       "games_played": 161,
       "wins": 96,
       "losses": 65,
-      "updated_at": "2026-03-03 19:27:38"
+      "updated_at": "2026-03-04 03:14:10"
+    },
+    {
+      "team": "BUF",
+      "league": "nhl",
+      "rating": 1541.4,
+      "games_played": 145,
+      "wins": 72,
+      "losses": 73,
+      "updated_at": "2026-03-04 03:14:10"
     },
     {
       "team": "MIN",
@@ -417,34 +448,16 @@
       "games_played": 152,
       "wins": 85,
       "losses": 67,
-      "updated_at": "2026-03-03 19:27:38"
-    },
-    {
-      "team": "BUF",
-      "league": "nhl",
-      "rating": 1539.1,
-      "games_played": 144,
-      "wins": 71,
-      "losses": 73,
-      "updated_at": "2026-03-03 19:27:38"
-    },
-    {
-      "team": "PIT",
-      "league": "nhl",
-      "rating": 1523.8,
-      "games_played": 146,
-      "wins": 69,
-      "losses": 77,
-      "updated_at": "2026-03-03 19:27:38"
+      "updated_at": "2026-03-04 03:14:10"
     },
     {
       "team": "UTA",
       "league": "nhl",
-      "rating": 1523.8,
-      "games_played": 62,
-      "wins": 33,
+      "rating": 1526.7,
+      "games_played": 63,
+      "wins": 34,
       "losses": 29,
-      "updated_at": "2026-03-03 19:27:38"
+      "updated_at": "2026-03-04 03:14:10"
     },
     {
       "team": "MTL",
@@ -453,7 +466,16 @@
       "games_played": 149,
       "wins": 74,
       "losses": 75,
-      "updated_at": "2026-03-03 19:27:38"
+      "updated_at": "2026-03-04 03:14:10"
+    },
+    {
+      "team": "PIT",
+      "league": "nhl",
+      "rating": 1521.2,
+      "games_played": 147,
+      "wins": 69,
+      "losses": 78,
+      "updated_at": "2026-03-04 03:14:10"
     },
     {
       "team": "OTT",
@@ -462,16 +484,7 @@
       "games_played": 152,
       "wins": 80,
       "losses": 72,
-      "updated_at": "2026-03-03 19:27:38"
-    },
-    {
-      "team": "FLA",
-      "league": "nhl",
-      "rating": 1517.8,
-      "games_played": 169,
-      "wins": 96,
-      "losses": 73,
-      "updated_at": "2026-03-03 19:27:38"
+      "updated_at": "2026-03-04 03:14:10"
     },
     {
       "team": "EDM",
@@ -480,16 +493,16 @@
       "games_played": 169,
       "wins": 91,
       "losses": 78,
-      "updated_at": "2026-03-03 19:27:38"
+      "updated_at": "2026-03-04 03:14:10"
     },
     {
-      "team": "WSH",
+      "team": "CBJ",
       "league": "nhl",
-      "rating": 1514.2,
-      "games_played": 157,
-      "wins": 89,
-      "losses": 68,
-      "updated_at": "2026-03-03 19:27:38"
+      "rating": 1513.1,
+      "games_played": 146,
+      "wins": 72,
+      "losses": 74,
+      "updated_at": "2026-03-04 03:14:10"
     },
     {
       "team": "DET",
@@ -498,34 +511,43 @@
       "games_played": 149,
       "wins": 77,
       "losses": 72,
-      "updated_at": "2026-03-03 19:27:38"
+      "updated_at": "2026-03-04 03:14:10"
+    },
+    {
+      "team": "WSH",
+      "league": "nhl",
+      "rating": 1511.3,
+      "games_played": 158,
+      "wins": 89,
+      "losses": 69,
+      "updated_at": "2026-03-04 03:14:10"
+    },
+    {
+      "team": "FLA",
+      "league": "nhl",
+      "rating": 1511.1,
+      "games_played": 170,
+      "wins": 96,
+      "losses": 74,
+      "updated_at": "2026-03-04 03:14:10"
     },
     {
       "team": "VGK",
       "league": "nhl",
-      "rating": 1511.5,
-      "games_played": 158,
+      "rating": 1509.3,
+      "games_played": 159,
       "wins": 85,
-      "losses": 73,
-      "updated_at": "2026-03-03 19:27:38"
-    },
-    {
-      "team": "CBJ",
-      "league": "nhl",
-      "rating": 1511.2,
-      "games_played": 145,
-      "wins": 71,
       "losses": 74,
-      "updated_at": "2026-03-03 19:27:38"
+      "updated_at": "2026-03-04 03:14:10"
     },
     {
       "team": "BOS",
       "league": "nhl",
-      "rating": 1506.3,
-      "games_played": 146,
-      "wins": 69,
+      "rating": 1508.9,
+      "games_played": 147,
+      "wins": 70,
       "losses": 77,
-      "updated_at": "2026-03-03 19:27:38"
+      "updated_at": "2026-03-04 03:14:10"
     },
     {
       "team": "NYI",
@@ -534,7 +556,7 @@
       "games_played": 145,
       "wins": 72,
       "losses": 73,
-      "updated_at": "2026-03-03 19:27:38"
+      "updated_at": "2026-03-04 03:14:10"
     },
     {
       "team": "UTAH",
@@ -543,7 +565,7 @@
       "games_played": 85,
       "wins": 40,
       "losses": 45,
-      "updated_at": "2026-03-03 19:27:38"
+      "updated_at": "2026-03-04 03:14:10"
     },
     {
       "team": "WPG",
@@ -552,7 +574,7 @@
       "games_played": 157,
       "wins": 88,
       "losses": 69,
-      "updated_at": "2026-03-03 19:27:38"
+      "updated_at": "2026-03-04 03:14:10"
     },
     {
       "team": "ANA",
@@ -561,7 +583,7 @@
       "games_played": 145,
       "wins": 71,
       "losses": 74,
-      "updated_at": "2026-03-03 19:27:38"
+      "updated_at": "2026-03-04 03:14:10"
     },
     {
       "team": "SEA",
@@ -570,7 +592,7 @@
       "games_played": 144,
       "wins": 66,
       "losses": 78,
-      "updated_at": "2026-03-03 19:27:38"
+      "updated_at": "2026-03-04 03:14:10"
     },
     {
       "team": "TOR",
@@ -579,7 +601,7 @@
       "games_played": 160,
       "wins": 88,
       "losses": 72,
-      "updated_at": "2026-03-03 19:27:38"
+      "updated_at": "2026-03-04 03:14:10"
     },
     {
       "team": "LA",
@@ -588,7 +610,16 @@
       "games_played": 152,
       "wins": 76,
       "losses": 76,
-      "updated_at": "2026-03-03 19:27:38"
+      "updated_at": "2026-03-04 03:14:10"
+    },
+    {
+      "team": "NJ",
+      "league": "nhl",
+      "rating": 1468.3,
+      "games_played": 152,
+      "wins": 74,
+      "losses": 78,
+      "updated_at": "2026-03-04 03:14:10"
     },
     {
       "team": "PHI",
@@ -597,16 +628,7 @@
       "games_played": 146,
       "wins": 63,
       "losses": 83,
-      "updated_at": "2026-03-03 19:27:38"
-    },
-    {
-      "team": "NJ",
-      "league": "nhl",
-      "rating": 1461.5,
-      "games_played": 151,
-      "wins": 73,
-      "losses": 78,
-      "updated_at": "2026-03-03 19:27:38"
+      "updated_at": "2026-03-04 03:14:10"
     },
     {
       "team": "STL",
@@ -615,7 +637,7 @@
       "games_played": 154,
       "wins": 72,
       "losses": 82,
-      "updated_at": "2026-03-03 19:27:38"
+      "updated_at": "2026-03-04 03:14:10"
     },
     {
       "team": "CGY",
@@ -624,16 +646,16 @@
       "games_played": 145,
       "wins": 65,
       "losses": 80,
-      "updated_at": "2026-03-03 19:27:38"
+      "updated_at": "2026-03-04 03:14:10"
     },
     {
       "team": "NSH",
       "league": "nhl",
-      "rating": 1451.3,
-      "games_played": 145,
+      "rating": 1449.4,
+      "games_played": 146,
       "wins": 59,
-      "losses": 86,
-      "updated_at": "2026-03-03 19:27:38"
+      "losses": 87,
+      "updated_at": "2026-03-04 03:14:10"
     },
     {
       "team": "NYR",
@@ -642,7 +664,7 @@
       "games_played": 146,
       "wins": 63,
       "losses": 83,
-      "updated_at": "2026-03-03 19:27:38"
+      "updated_at": "2026-03-04 03:14:10"
     },
     {
       "team": "SJ",
@@ -651,7 +673,7 @@
       "games_played": 146,
       "wins": 51,
       "losses": 95,
-      "updated_at": "2026-03-03 19:27:38"
+      "updated_at": "2026-03-04 03:14:10"
     },
     {
       "team": "CHI",
@@ -660,7 +682,7 @@
       "games_played": 147,
       "wins": 49,
       "losses": 98,
-      "updated_at": "2026-03-03 19:27:38"
+      "updated_at": "2026-03-04 03:14:10"
     },
     {
       "team": "VAN",
@@ -669,7 +691,7 @@
       "games_played": 145,
       "wins": 59,
       "losses": 86,
-      "updated_at": "2026-03-03 19:27:38"
+      "updated_at": "2026-03-04 03:14:10"
     }
   ],
   "pnl_series": [],
@@ -681,5 +703,5 @@
     "max_loss_streak": 0,
     "avg_trade_size": 0
   },
-  "last_updated": "2026-03-04T03:00:19.191669+00:00"
+  "last_updated": "2026-03-04T03:17:59.147946+00:00"
 }
