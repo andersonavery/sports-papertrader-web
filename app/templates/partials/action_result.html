@@ -1,0 +1,9 @@
+<div class="rounded-lg p-3 text-sm {% if success %}bg-emerald-500/10 border border-emerald-500/30{% else %}bg-red-500/10 border border-red-500/30{% endif %}">
+  <div class="flex items-center gap-2 mb-1">
+    <span>{% if success %}✅{% else %}❌{% endif %}</span>
+    <span class="font-semibold {% if success %}text-emerald-400{% else %}text-red-400{% endif %}">
+      {{ action }} {{ "Complete" if success else "Failed" }}
+    </span>
+  </div>
+  <pre class="text-xs text-slate-400 whitespace-pre-wrap max-h-40 overflow-y-auto mt-2 font-mono">{{ output }}</pre>
+</div>
