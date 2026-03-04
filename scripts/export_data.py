@@ -180,6 +180,42 @@ def export(db_path):
         "avg_trade_size": round(avg_size["a"], 2) if avg_size["a"] else 0,
     }
 
+    # --- Shadow Trades ---
+    try:
+        shadow_rows = conn.execute(
+            "SELECT * FROM shadow_trades ORDER BY date DESC, created_at DESC LIMIT 50"
+        ).fetchall()
+        data["shadow_trades"] = [dict(r) for r in shadow_rows]
+
+        shadow_resolved = conn.execute(
+            "SELECT COUNT(*) as c FROM shadow_trades WHERE outcome IS NOT NULL"
+        ).fetchone()["c"]
+        shadow_wins = conn.execute(
+            "SELECT COUNT(*) as c FROM shadow_trades WHERE outcome = 'WIN'"
+        ).fetchone()["c"]
+        shadow_losses = conn.execute(
+            "SELECT COUNT(*) as c FROM shadow_trades WHERE outcome = 'LOSS'"
+        ).fetchone()["c"]
+        shadow_open = conn.execute(
+            "SELECT COUNT(*) as c FROM shadow_trades WHERE outcome IS NULL"
+        ).fetchone()["c"]
+        shadow_pnl = conn.execute(
+            "SELECT COALESCE(SUM(pnl), 0) as s FROM shadow_trades WHERE outcome IS NOT NULL"
+        ).fetchone()["s"]
+
+        data["shadow_stats"] = {
+            "total": len(shadow_rows),
+            "resolved": shadow_resolved,
+            "wins": shadow_wins,
+            "losses": shadow_losses,
+            "open": shadow_open,
+            "total_pnl": round(shadow_pnl, 2),
+            "win_rate": round(shadow_wins / shadow_resolved * 100, 1) if shadow_resolved > 0 else 0,
+        }
+    except Exception:
+        data["shadow_trades"] = []
+        data["shadow_stats"] = {"total": 0, "resolved": 0, "wins": 0, "losses": 0, "open": 0, "total_pnl": 0, "win_rate": 0}
+
     data["last_updated"] = datetime.now(timezone.utc).isoformat()
 
     conn.close()

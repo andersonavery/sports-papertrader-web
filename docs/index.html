@@ -85,6 +85,19 @@
         <div class="shimmer mb-2"></div><div class="shimmer"></div>
       </div>
     </div>
+
+    <!-- Shadow Trades Section -->
+    <div class="mb-6">
+      <div class="card border-dashed border-purple-500/30" id="shadow-panel">
+        <div class="flex items-center gap-2 mb-3">
+          <span class="text-lg">👻</span>
+          <h3 class="text-sm font-semibold text-purple-300">Shadow Trades</h3>
+          <span class="text-xs bg-purple-600/20 text-purple-400 px-2 py-0.5 rounded-full border border-purple-600/30">experimental</span>
+        </div>
+        <p class="text-xs text-slate-500 mb-3">Trades the model said NO to — tracked to find blind spots. Not from bankroll.</p>
+        <div class="shimmer mb-2"></div><div class="shimmer"></div>
+      </div>
+    </div>
   </main>
 
   <footer class="border-t border-slate-700/50 mt-12">
@@ -154,6 +167,9 @@ async function loadDashboard() {
 
   // Performance
   renderPerformance(data);
+
+  // Shadow trades
+  renderShadowTrades(data.shadow_trades, data.shadow_stats);
 }
 
 function renderTrades(trades) {
@@ -346,6 +362,94 @@ function renderPerformance(data) {
   }
 
   $('#performance-panel').innerHTML = html;
+}
+
+function renderShadowTrades(trades, stats) {
+  if (!trades || !trades.length) {
+    $('#shadow-panel').innerHTML = `<div class="flex items-center gap-2 mb-3">
+      <span class="text-lg">👻</span>
+      <h3 class="text-sm font-semibold text-purple-300">Shadow Trades</h3>
+      <span class="text-xs bg-purple-600/20 text-purple-400 px-2 py-0.5 rounded-full border border-purple-600/30">experimental</span>
+    </div>
+    <p class="text-xs text-slate-500 mb-3">Trades the model said NO to — tracked to find blind spots.</p>
+    <div class="text-center py-6 text-slate-500"><p class="text-lg mb-2">👻</p><p>No shadow trades yet.</p></div>`;
+    return;
+  }
+
+  let html = `<div class="flex items-center gap-2 mb-3">
+    <span class="text-lg">👻</span>
+    <h3 class="text-sm font-semibold text-purple-300">Shadow Trades</h3>
+    <span class="text-xs bg-purple-600/20 text-purple-400 px-2 py-0.5 rounded-full border border-purple-600/30">experimental</span>
+  </div>
+  <p class="text-xs text-slate-500 mb-3">Trades the model said NO to — tracked to find blind spots. Not from bankroll.</p>`;
+
+  // Stats row
+  if (stats && stats.resolved > 0) {
+    const shadowPnlColor = stats.total_pnl >= 0 ? 'text-emerald-400' : 'text-red-400';
+    html += `<div class="grid grid-cols-4 gap-2 mb-3">
+      <div class="bg-purple-900/20 rounded-lg p-2 text-center">
+        <div class="text-sm font-bold text-purple-300">${stats.resolved}</div>
+        <div class="text-xs text-slate-500">${stats.wins}W-${stats.losses}L</div>
+      </div>
+      <div class="bg-purple-900/20 rounded-lg p-2 text-center">
+        <div class="text-sm font-bold ${shadowPnlColor}">$${fmt(stats.total_pnl)}</div>
+        <div class="text-xs text-slate-500">Shadow P&L</div>
+      </div>
+      <div class="bg-purple-900/20 rounded-lg p-2 text-center">
+        <div class="text-sm font-bold text-purple-300">${fmt(stats.win_rate,1)}%</div>
+        <div class="text-xs text-slate-500">Win Rate</div>
+      </div>
+      <div class="bg-purple-900/20 rounded-lg p-2 text-center">
+        <div class="text-sm font-bold text-purple-300">${stats.open}</div>
+        <div class="text-xs text-slate-500">Open</div>
+      </div>
+    </div>`;
+  }
+
+  // Table
+  html += `<div class="overflow-x-auto"><table class="w-full text-sm">
+    <thead><tr class="text-xs text-purple-400/70 uppercase tracking-wider border-b border-purple-700/30">
+      <th class="text-left py-2 pr-3">Date</th>
+      <th class="text-left py-2 pr-3">Team</th>
+      <th class="text-left py-2 pr-3">Dir</th>
+      <th class="text-right py-2 pr-3">Entry</th>
+      <th class="text-right py-2 pr-3">Elo %</th>
+      <th class="text-center py-2 pr-3">Result</th>
+      <th class="text-right py-2 pr-3">P&L</th>
+      <th class="text-left py-2">Why Skipped</th>
+    </tr></thead><tbody>`;
+
+  for (const t of trades) {
+    const dirClass = t.direction === 'YES' ? 'text-emerald-400' : 'text-red-400';
+    let badge;
+    if (t.outcome === 'WIN') badge = '<span class="badge" style="background:rgba(168,85,247,.2);color:#c084fc;border:1px solid rgba(168,85,247,.3)">WIN</span>';
+    else if (t.outcome === 'LOSS') badge = '<span class="badge" style="background:rgba(168,85,247,.1);color:#a78bfa;border:1px solid rgba(168,85,247,.2)">LOSS</span>';
+    else badge = '<span class="badge badge-open">OPEN</span>';
+
+    let pnlHtml = '<span class="text-slate-500">—</span>';
+    if (t.pnl !== null && t.pnl !== undefined) {
+      pnlHtml = `<span class="${pnlColor(t.pnl)}">$${fmt(t.pnl)}</span>`;
+    }
+
+    const reason = t.reason_skipped || '';
+    const shortReason = reason.length > 35 ? reason.substring(0, 35) + '…' : reason;
+
+    html += `<tr class="border-b border-purple-700/20 hover:bg-purple-900/20 transition-colors">
+      <td class="py-2 pr-3 text-slate-400">${t.date}</td>
+      <td class="py-2 pr-3 font-medium">
+        <span class="text-xs px-1.5 py-0.5 rounded bg-purple-900/30 text-purple-300">${(t.league||'').toUpperCase()}</span>
+        ${t.team}
+      </td>
+      <td class="py-2 pr-3 font-medium ${dirClass}">${t.direction}</td>
+      <td class="py-2 pr-3 text-right font-mono">$${fmt(t.entry_price)}</td>
+      <td class="py-2 pr-3 text-right font-mono">${fmt((t.elo_probability||0)*100,1)}%</td>
+      <td class="py-2 pr-3 text-center">${badge}</td>
+      <td class="py-2 pr-3 text-right font-mono">${pnlHtml}</td>
+      <td class="py-2 text-xs text-slate-500" title="${reason}">${shortReason}</td>
+    </tr>`;
+  }
+  html += '</tbody></table></div>';
+  $('#shadow-panel').innerHTML = html;
 }
 
 // Load on page ready

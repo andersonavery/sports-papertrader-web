@@ -397,7 +397,101 @@ def resolve_trades():
     return resolved
 
 
-def show_results():
+def place_shadow_trade(slug, team, direction, elo_prob, poly_price,
+                       reason_skipped, sportsbook_prob=None, league=None):
+    """
+    Place a shadow trade — a trade the model said NO to, tracked for learning.
+    Uses a fixed $10 notional amount (not from bankroll).
+    """
+    db = get_db()
+    today = datetime.now().strftime("%Y-%m-%d")
+
+    if league is None:
+        parts = slug.split('-')
+        league = parts[1] if len(parts) > 1 else 'nba'
+
+    shadow_amount = 10.0
+    entry_price = poly_price
+    shares = shadow_amount / entry_price if entry_price > 0 else 0
+    edge = elo_prob - poly_price
+
+    trade_id = (f"sh-{league}-{team}-"
+                f"{datetime.now().strftime('%Y%m%d-%H%M%S')}-"
+                f"{uuid.uuid4().hex[:4]}")
+
+    db.execute("""
+        INSERT INTO shadow_trades
+        (id, date, league, market_slug, team, direction, entry_price,
+         elo_probability, sportsbook_probability, polymarket_price,
+         edge_vs_poly, reason_skipped, shadow_amount, shadow_shares)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    """, (
+        trade_id, today, league, slug, team, direction, entry_price,
+        elo_prob, sportsbook_prob, poly_price, edge, reason_skipped,
+        shadow_amount, shares,
+    ))
+    db.commit()
+
+    print(f"  👻 SHADOW {direction} {team} ({league.upper()}) "
+          f"@ ${entry_price:.2f} | Elo: {elo_prob*100:.1f}% | "
+          f"Edge: {edge*100:+.1f}% | Reason: {reason_skipped}")
+    return trade_id
+
+
+def resolve_shadow_trades():
+    """Resolve shadow trades using same game results."""
+    db = get_db()
+
+    open_shadows = db.execute("""
+        SELECT * FROM shadow_trades WHERE outcome IS NULL ORDER BY date
+    """).fetchall()
+
+    if not open_shadows:
+        print("No unresolved shadow trades.")
+        return 0
+
+    resolved = 0
+    for trade in open_shadows:
+        game = db.execute("""
+            SELECT * FROM games
+            WHERE league = ? AND date = ? AND (home_team = ? OR away_team = ?)
+            ORDER BY date DESC LIMIT 1
+        """, (trade['league'], trade['date'], trade['team'], trade['team'])).fetchone()
+
+        if not game:
+            continue
+
+        if trade['team'] == game['home_team']:
+            won = game['home_score'] > game['away_score']
+        else:
+            won = game['away_score'] > game['home_score']
+
+        trade_won = won
+        entry_price = trade['entry_price']
+        shares = trade['shadow_shares']
+
+        if trade_won:
+            pnl = shares * (1.0 - entry_price)
+            outcome = 'WIN'
+        else:
+            pnl = -trade['shadow_amount']
+            outcome = 'LOSS'
+
+        db.execute("""
+            UPDATE shadow_trades
+            SET outcome = ?, pnl = ?, resolved_at = datetime('now')
+            WHERE id = ?
+        """, (outcome, pnl, trade['id']))
+
+        icon = '👻✅' if trade_won else '👻❌'
+        print(f"  {icon} SHADOW {trade['team']} ({trade['league'].upper()}) "
+              f"{trade['direction']} @ ${entry_price:.2f} → {outcome} "
+              f"(P&L: {'$' if pnl >= 0 else '-$'}{abs(pnl):.2f}) "
+              f"[skipped: {trade['reason_skipped']}]")
+        resolved += 1
+
+    db.commit()
+    return resolved
     """Show recent paper trade results."""
     db = get_db()
 
@@ -527,7 +621,8 @@ if __name__ == "__main__":
 
     elif cmd == 'resolve':
         resolved = resolve_trades()
-        print(f"\n  Resolved {resolved} trades.")
+        shadow_resolved = resolve_shadow_trades()
+        print(f"\n  Resolved {resolved} paper trades + {shadow_resolved} shadow trades.")
 
     elif cmd == 'results':
         show_results()
