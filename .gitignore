@@ -1,7 +1,8 @@
 __pycache__/
 *.pyc
 .env
-*.db
 .venv/
 dist/
 *.egg-info/
+# Allow the paper trades DB in data/
+!data/paper_trades.db

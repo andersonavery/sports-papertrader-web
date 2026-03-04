@@ -1,0 +1,355 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Paper Trader — Sports Edge Dashboard</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            surface: { DEFAULT: '#0f172a', card: '#1e293b', hover: '#334155' },
+            accent: { green: '#22c55e', red: '#ef4444', blue: '#3b82f6', yellow: '#eab308' },
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    body { background: #0f172a; }
+    .card { background: #1e293b; border-radius: 0.75rem; border: 1px solid rgba(51,65,85,.5); padding: 1.25rem; box-shadow: 0 10px 15px -3px rgba(0,0,0,.1); }
+    .stat-value { font-size: 1.5rem; font-weight: 700; color: white; }
+    .stat-label { font-size: 0.75rem; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.05em; }
+    .badge { font-size: 0.75rem; padding: 0.125rem 0.5rem; border-radius: 9999px; display: inline-block; }
+    .badge-win { background: rgba(34,197,94,.2); color: #4ade80; border: 1px solid rgba(34,197,94,.3); }
+    .badge-loss { background: rgba(239,68,68,.2); color: #f87171; border: 1px solid rgba(239,68,68,.3); }
+    .badge-open { background: rgba(59,130,246,.2); color: #60a5fa; border: 1px solid rgba(59,130,246,.3); }
+    .shimmer { background: linear-gradient(90deg, #1e293b 25%, #334155 50%, #1e293b 75%); background-size: 200% 100%; animation: shimmer 1.5s infinite; border-radius: 0.5rem; height: 1.5rem; }
+    @keyframes shimmer { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }
+  </style>
+</head>
+<body class="text-slate-200 min-h-screen">
+  <!-- Nav -->
+  <nav class="border-b border-slate-700/50 bg-[#1e293b]/80 backdrop-blur-sm sticky top-0 z-50">
+    <div class="max-w-7xl mx-auto px-6 py-3 flex items-center justify-between">
+      <div class="flex items-center gap-3">
+        <span class="text-xl">📊</span>
+        <h1 class="text-lg font-bold text-white">Paper Trader</h1>
+        <span class="text-xs bg-blue-600/20 text-blue-400 px-2 py-0.5 rounded-full border border-blue-600/30">live</span>
+      </div>
+      <div class="flex items-center gap-4">
+        <span id="last-updated" class="text-xs text-slate-500"></span>
+        <span class="text-sm text-slate-400">Elo + Polymarket Edge Detection</span>
+      </div>
+    </div>
+  </nav>
+
+  <main class="max-w-7xl mx-auto px-6 py-6">
+    <!-- Stats Row -->
+    <div id="stats-row" class="grid grid-cols-2 md:grid-cols-5 gap-4 mb-6">
+      <div class="card text-center"><div class="shimmer mb-2"></div><div class="stat-label">Total P&L</div></div>
+      <div class="card text-center"><div class="shimmer mb-2"></div><div class="stat-label">Bankroll</div></div>
+      <div class="card text-center"><div class="shimmer mb-2"></div><div class="stat-label">Record</div></div>
+      <div class="card text-center"><div class="shimmer mb-2"></div><div class="stat-label">Win Rate</div></div>
+      <div class="card text-center"><div class="shimmer mb-2"></div><div class="stat-label">Open Trades</div></div>
+    </div>
+
+    <!-- Main Grid: Trades + Elo -->
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
+      <!-- Trades Table (2 cols) -->
+      <div class="lg:col-span-2">
+        <div class="card" id="trades-panel">
+          <h3 class="text-sm font-semibold text-slate-300 mb-3">Paper Trades</h3>
+          <div class="shimmer mb-2"></div><div class="shimmer mb-2"></div><div class="shimmer"></div>
+        </div>
+      </div>
+      <!-- Elo Ratings (1 col) -->
+      <div id="elo-panel">
+        <div class="card mb-4"><h3 class="text-sm font-semibold text-slate-300 mb-3">🏀 NBA Elo Ratings</h3><div class="shimmer"></div></div>
+        <div class="card"><h3 class="text-sm font-semibold text-slate-300 mb-3">🏒 NHL Elo Ratings</h3><div class="shimmer"></div></div>
+      </div>
+    </div>
+
+    <!-- Performance Row -->
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+      <div class="card">
+        <h3 class="text-sm font-semibold text-slate-300 mb-3">Cumulative P&L</h3>
+        <canvas id="pnl-chart" height="200"></canvas>
+      </div>
+      <div class="card" id="performance-panel">
+        <h3 class="text-sm font-semibold text-slate-300 mb-3">Performance Metrics</h3>
+        <div class="shimmer mb-2"></div><div class="shimmer"></div>
+      </div>
+    </div>
+  </main>
+
+  <footer class="border-t border-slate-700/50 mt-12">
+    <div class="max-w-7xl mx-auto px-6 py-4 text-center text-xs text-slate-500">
+      Paper trading only — no real money at risk. Powered by Elo ratings. Auto-updated via GitHub Actions.
+    </div>
+  </footer>
+
+<script>
+const $ = s => document.querySelector(s);
+const fmt = (n, d=2) => Number(n).toFixed(d);
+const pnlColor = v => v >= 0 ? 'text-emerald-400' : 'text-red-400';
+
+async function loadDashboard() {
+  let data;
+  try {
+    const r = await fetch('data/data.json');
+    if (!r.ok) throw new Error('No data yet');
+    data = await r.json();
+  } catch {
+    $('#stats-row').innerHTML = `<div class="card col-span-full text-center py-8 text-slate-500">
+      <p class="text-lg mb-2">📭</p><p>No data available yet. Run the export script to generate data.</p>
+      <code class="text-xs text-slate-400 mt-2 block">python3 scripts/export_data.py</code>
+    </div>`;
+    return;
+  }
+
+  const s = data.stats;
+
+  // Last updated
+  if (data.last_updated) {
+    const d = new Date(data.last_updated);
+    $('#last-updated').textContent = `Updated: ${d.toLocaleDateString()} ${d.toLocaleTimeString()}`;
+  }
+
+  // Stats row
+  $('#stats-row').innerHTML = `
+    <div class="card text-center">
+      <div class="stat-value ${pnlColor(s.total_pnl)}">$${fmt(s.total_pnl)}</div>
+      <div class="stat-label">Total P&L</div>
+    </div>
+    <div class="card text-center">
+      <div class="stat-value">$${fmt(s.bankroll)}</div>
+      <div class="stat-label">Bankroll</div>
+    </div>
+    <div class="card text-center">
+      <div class="stat-value">${s.resolved}</div>
+      <div class="stat-label">${s.wins}W – ${s.losses}L</div>
+    </div>
+    <div class="card text-center">
+      <div class="stat-value">${fmt(s.win_rate,1)}%</div>
+      <div class="stat-label">Win Rate</div>
+    </div>
+    <div class="card text-center">
+      <div class="stat-value">${s.open}</div>
+      <div class="stat-label">Open Trades</div>
+    </div>`;
+
+  // Trades table
+  renderTrades(data.trades);
+
+  // Elo ratings
+  renderElo(data.nba_ratings, data.nhl_ratings);
+
+  // P&L chart
+  renderPnlChart(data.pnl_series);
+
+  // Performance
+  renderPerformance(data);
+}
+
+function renderTrades(trades) {
+  if (!trades.length) {
+    $('#trades-panel').innerHTML = `<h3 class="text-sm font-semibold text-slate-300 mb-3">Paper Trades</h3>
+      <div class="text-center py-8 text-slate-500"><p class="text-lg mb-2">📭</p><p>No trades yet.</p></div>`;
+    return;
+  }
+  let html = `<h3 class="text-sm font-semibold text-slate-300 mb-3">Paper Trades
+    <span class="text-xs text-slate-500 font-normal ml-2">(${trades.length} shown)</span></h3>
+    <div class="overflow-x-auto"><table class="w-full text-sm">
+    <thead><tr class="text-xs text-slate-400 uppercase tracking-wider border-b border-slate-700/50">
+      <th class="text-left py-2 pr-3">Date</th>
+      <th class="text-left py-2 pr-3">Team</th>
+      <th class="text-left py-2 pr-3">Dir</th>
+      <th class="text-right py-2 pr-3">Entry</th>
+      <th class="text-right py-2 pr-3">Elo %</th>
+      <th class="text-right py-2 pr-3">Size</th>
+      <th class="text-center py-2 pr-3">Result</th>
+      <th class="text-right py-2">P&L</th>
+    </tr></thead><tbody>`;
+
+  for (const t of trades) {
+    const dirClass = t.direction === 'YES' ? 'text-emerald-400' : 'text-red-400';
+    let badge;
+    if (t.outcome === 'WIN') badge = '<span class="badge badge-win">WIN</span>';
+    else if (t.outcome === 'LOSS') badge = '<span class="badge badge-loss">LOSS</span>';
+    else badge = '<span class="badge badge-open">OPEN</span>';
+
+    let pnlHtml = '<span class="text-slate-500">—</span>';
+    if (t.pnl !== null && t.pnl !== undefined) {
+      pnlHtml = `<span class="${pnlColor(t.pnl)}">$${fmt(t.pnl)}</span>`;
+    }
+
+    html += `<tr class="border-b border-slate-700/30 hover:bg-[#334155]/50 transition-colors">
+      <td class="py-2 pr-3 text-slate-400">${t.date}</td>
+      <td class="py-2 pr-3 font-medium">
+        <span class="text-xs px-1.5 py-0.5 rounded bg-slate-700 text-slate-300">${(t.league||'').toUpperCase()}</span>
+        ${t.team}
+      </td>
+      <td class="py-2 pr-3 font-medium ${dirClass}">${t.direction}</td>
+      <td class="py-2 pr-3 text-right font-mono">$${fmt(t.entry_price)}</td>
+      <td class="py-2 pr-3 text-right font-mono">${fmt(t.elo_probability*100,1)}%</td>
+      <td class="py-2 pr-3 text-right font-mono">$${fmt(t.paper_amount)}</td>
+      <td class="py-2 pr-3 text-center">${badge}</td>
+      <td class="py-2 text-right font-mono">${pnlHtml}</td>
+    </tr>`;
+  }
+  html += '</tbody></table></div>';
+  $('#trades-panel').innerHTML = html;
+}
+
+function renderElo(nba, nhl) {
+  function table(ratings, emoji, label, thresholds) {
+    if (!ratings || !ratings.length) return `<div class="card mb-4"><h3 class="text-sm font-semibold text-slate-300 mb-3">${emoji} ${label}</h3><p class="text-slate-500 text-sm">No ratings yet.</p></div>`;
+    let html = `<div class="card mb-4"><h3 class="text-sm font-semibold text-slate-300 mb-3">${emoji} ${label}</h3>
+      <div class="overflow-x-auto"><table class="w-full text-sm">
+      <thead><tr class="text-xs text-slate-400 uppercase tracking-wider border-b border-slate-700/50">
+        <th class="text-left py-1.5">#</th><th class="text-left py-1.5">Team</th>
+        <th class="text-right py-1.5">Elo</th><th class="text-right py-1.5">W-L</th>
+      </tr></thead><tbody>`;
+    ratings.slice(0, 15).forEach((r, i) => {
+      let color = 'text-slate-300';
+      if (r.rating > thresholds[0]) color = 'text-emerald-400';
+      else if (r.rating > thresholds[1]) color = 'text-blue-400';
+      else if (r.rating < thresholds[2]) color = 'text-red-400';
+      html += `<tr class="border-b border-slate-700/20 hover:bg-[#334155]/50">
+        <td class="py-1 text-slate-500">${i+1}</td>
+        <td class="py-1 font-medium">${r.team}</td>
+        <td class="py-1 text-right font-mono ${color}">${Math.round(r.rating)}</td>
+        <td class="py-1 text-right text-slate-400">${r.wins}-${r.losses}</td>
+      </tr>`;
+    });
+    html += '</tbody></table></div></div>';
+    return html;
+  }
+  $('#elo-panel').innerHTML =
+    table(nba, '🏀', 'NBA Elo Ratings', [1650, 1500, 1350]) +
+    table(nhl, '🏒', 'NHL Elo Ratings', [1550, 1500, 1450]);
+}
+
+function renderPnlChart(series) {
+  const ctx = $('#pnl-chart');
+  if (!series || !series.length) {
+    ctx.parentElement.querySelector('h3').insertAdjacentHTML('afterend',
+      '<p class="text-slate-500 text-sm text-center py-8">No resolved trades yet.</p>');
+    ctx.style.display = 'none';
+    return;
+  }
+  const last = series[series.length - 1].cumulative;
+  const color = last >= 0 ? '#22c55e' : '#ef4444';
+  new Chart(ctx, {
+    type: 'line',
+    data: {
+      labels: series.map(d => d.date),
+      datasets: [{
+        label: 'Cumulative P&L ($)',
+        data: series.map(d => d.cumulative),
+        borderColor: color,
+        backgroundColor: color + '20',
+        fill: true, tension: 0.3, pointRadius: 3, borderWidth: 2,
+      }]
+    },
+    options: {
+      responsive: true,
+      plugins: { legend: { display: false } },
+      scales: {
+        x: { ticks: { color: '#94a3b8', maxTicksLimit: 10 }, grid: { color: '#334155' } },
+        y: { ticks: { color: '#94a3b8', callback: v => '$' + v }, grid: { color: '#334155' } },
+      }
+    }
+  });
+}
+
+function renderPerformance(data) {
+  const s = data.stats;
+  if (s.resolved === 0) {
+    $('#performance-panel').innerHTML = `<h3 class="text-sm font-semibold text-slate-300 mb-3">Performance Metrics</h3>
+      <div class="text-center py-6 text-slate-500"><p class="text-lg mb-2">📭</p>
+      <p>No resolved trades yet.</p><p class="text-xs mt-1">Results will appear after games complete.</p></div>`;
+    return;
+  }
+
+  const b = data.brier;
+  let brierColor = 'text-red-400', brierLabel = '❌ Poor';
+  if (b < 0.15) { brierColor = 'text-emerald-400'; brierLabel = '⭐ Excellent'; }
+  else if (b < 0.22) { brierColor = 'text-blue-400'; brierLabel = '✅ Good'; }
+  else if (b < 0.25) { brierColor = 'text-amber-400'; brierLabel = '🔶 Fair'; }
+
+  const r = data.risk;
+  let html = `<h3 class="text-sm font-semibold text-slate-300 mb-3">Performance Metrics</h3>
+    <div class="grid grid-cols-2 gap-3 mb-4">
+      <div class="bg-slate-800/50 rounded-lg p-3 text-center">
+        <div class="text-lg font-bold ${brierColor}">${b}</div>
+        <div class="text-xs text-slate-400">Brier Score</div>
+        <div class="text-xs text-slate-500 mt-0.5">${brierLabel}</div>
+      </div>
+      <div class="bg-slate-800/50 rounded-lg p-3 text-center">
+        <div class="text-lg font-bold ${pnlColor(s.roi)}">${fmt(s.roi,1)}%</div>
+        <div class="text-xs text-slate-400">ROI</div>
+      </div>
+      <div class="bg-slate-800/50 rounded-lg p-3 text-center">
+        <div class="text-lg font-bold text-amber-400">$${fmt(r.max_drawdown)}</div>
+        <div class="text-xs text-slate-400">Max Drawdown</div>
+      </div>
+      <div class="bg-slate-800/50 rounded-lg p-3 text-center">
+        <div class="text-lg font-bold text-red-400">${r.max_loss_streak}</div>
+        <div class="text-xs text-slate-400">Max Loss Streak</div>
+      </div>
+    </div>`;
+
+  // Sport breakdown
+  if (data.sport_breakdown && data.sport_breakdown.length) {
+    html += `<h4 class="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2 mt-4">By Sport</h4>
+      <table class="w-full text-sm"><thead><tr class="text-xs text-slate-400 border-b border-slate-700/50">
+        <th class="text-left py-1">Sport</th><th class="text-right py-1">W-L</th>
+        <th class="text-right py-1">Win%</th><th class="text-right py-1">P&L</th>
+        <th class="text-right py-1">Brier</th>
+      </tr></thead><tbody>`;
+    for (const sp of data.sport_breakdown) {
+      html += `<tr class="border-b border-slate-700/20">
+        <td class="py-1 font-medium">${sp.league}</td>
+        <td class="py-1 text-right text-slate-400">${sp.wins}-${sp.losses}</td>
+        <td class="py-1 text-right">${sp.win_rate}%</td>
+        <td class="py-1 text-right font-mono ${pnlColor(sp.pnl)}">$${fmt(sp.pnl)}</td>
+        <td class="py-1 text-right font-mono">${sp.brier}</td>
+      </tr>`;
+    }
+    html += '</tbody></table>';
+  }
+
+  // Calibration
+  if (data.calibration && data.calibration.length) {
+    html += `<h4 class="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2 mt-4">Calibration</h4>
+      <table class="w-full text-sm"><thead><tr class="text-xs text-slate-400 border-b border-slate-700/50">
+        <th class="text-right py-1">Predicted</th><th class="text-right py-1">Actual</th>
+        <th class="text-right py-1">Count</th><th class="text-center py-1">Status</th>
+      </tr></thead><tbody>`;
+    for (const c of data.calibration) {
+      const diff = Math.abs(c.actual - c.predicted);
+      const icon = diff < 10 ? '✅' : diff < 20 ? '🔶' : '❌';
+      html += `<tr class="border-b border-slate-700/20">
+        <td class="py-1 text-right font-mono">${c.predicted}%</td>
+        <td class="py-1 text-right font-mono">${c.actual}%</td>
+        <td class="py-1 text-right">${c.count}</td>
+        <td class="py-1 text-center">${icon}</td>
+      </tr>`;
+    }
+    html += '</tbody></table>';
+  }
+
+  $('#performance-panel').innerHTML = html;
+}
+
+// Load on page ready
+loadDashboard();
+</script>
+</body>
+</html>

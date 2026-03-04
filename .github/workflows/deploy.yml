@@ -1,0 +1,72 @@
+name: Update & Deploy
+
+on:
+  push:
+    branches: [main]
+  schedule:
+    # Run daily at 10 AM UTC (5 AM ET) — after most games finish
+    - cron: '0 10 * * *'
+  workflow_dispatch: # Manual trigger
+
+permissions:
+  contents: write
+  pages: write
+  id-token: write
+
+jobs:
+  update-data:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install dependencies
+        run: pip install nba_api requests
+
+      - name: Update Elo ratings
+        if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
+        run: python scripts/elo_model.py update
+        continue-on-error: true
+
+      - name: Resolve open trades
+        if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
+        run: python scripts/paper_trader.py resolve
+        continue-on-error: true
+
+      - name: Export data to JSON
+        run: python scripts/export_data.py data/paper_trades.db
+
+      - name: Commit updated data
+        if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add docs/data/ data/
+          git diff --staged --quiet || git commit -m "Auto-update: $(date -u +%Y-%m-%d)"
+          git push
+
+  deploy:
+    needs: update-data
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+
+      - name: Pull latest (in case update job pushed)
+        run: git pull origin main || true
+
+      - uses: actions/configure-pages@v5
+
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: docs
+
+      - id: deployment
+        uses: actions/deploy-pages@v4
