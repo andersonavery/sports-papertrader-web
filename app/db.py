@@ -135,7 +135,7 @@ def get_calibration_data():
 def get_sport_breakdown():
     conn = get_conn()
     breakdown = []
-    for league in ["nba", "nhl"]:
+    for league in ["nba", "nhl", "cbb", "mls"]:
         stats = conn.execute("""
             SELECT
                 COUNT(*) as total,

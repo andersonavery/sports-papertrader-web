@@ -1,11 +1,13 @@
 #!/usr/bin/env python3
 """
-Elo Rating Engine for NBA + NHL — Polymarket Edge Detection
+Elo Rating Engine for NBA + NHL + CBB + MLS — Polymarket Edge Detection
 
 Usage:
   python3 elo_model.py build              # Build/rebuild ratings from historical data
   python3 elo_model.py ratings nba        # Show current NBA Elo ratings
   python3 elo_model.py ratings nhl        # Show current NHL Elo ratings
+  python3 elo_model.py ratings cbb        # Show current CBB Elo ratings
+  python3 elo_model.py ratings mls        # Show current MLS Elo ratings
   python3 elo_model.py predict nba OKC DET  # Predict OKC (away) @ DET (home)
   python3 elo_model.py today nba          # Show predictions for today's games
 """
@@ -41,6 +43,20 @@ ELO_CONFIG = {
         "initial_rating": 1500,
         "season_regression": 1/3,
         "mov_multiplier": True,
+    },
+    "cbb": {
+        "k_factor": 15,
+        "home_advantage": 80,
+        "initial_rating": 1500,
+        "season_regression": 1/2,  # higher regression — less data per team
+        "mov_multiplier": True,
+    },
+    "mls": {
+        "k_factor": 25,
+        "home_advantage": 100,
+        "initial_rating": 1500,
+        "season_regression": 1/4,  # moderate — shorter offseason
+        "mov_multiplier": False,   # soccer goals too rare for MOV
     },
 }
 
@@ -263,6 +279,114 @@ def fetch_nhl_games(seasons=None):
     return all_games
 
 
+def fetch_cbb_games(seasons=None):
+    """Fetch college basketball game results via ESPN API."""
+    if seasons is None:
+        seasons = [
+            ("2024-25", "20241101", "20250410"),
+            ("2025-26", "20251101", "20260410"),
+        ]
+
+    all_games = []
+    for season_name, start_date, end_date in seasons:
+        print(f"  Fetching CBB {season_name}...")
+        current = datetime.strptime(start_date, "%Y%m%d")
+        end = min(datetime.strptime(end_date, "%Y%m%d"), datetime.now())
+
+        while current <= end:
+            date_str = current.strftime("%Y%m%d")
+            url = (f"https://site.api.espn.com/apis/site/v2/sports/basketball/"
+                   f"mens-college-basketball/scoreboard?dates={date_str}&limit=200&groups=50")
+            try:
+                req = urllib.request.Request(url, headers={'User-Agent': 'Mozilla/5.0'})
+                resp = urllib.request.urlopen(req, timeout=10)
+                data = json.loads(resp.read())
+            except Exception:
+                current += timedelta(days=1)
+                continue
+
+            for event in data.get('events', []):
+                comp = event['competitions'][0]
+                status = comp['status']['type']['description']
+                if status != 'Final':
+                    continue
+
+                teams = comp['competitors']
+                home = [t for t in teams if t['homeAway'] == 'home'][0]
+                away = [t for t in teams if t['homeAway'] == 'away'][0]
+                game_id = event['id']
+
+                all_games.append({
+                    'id': f"cbb-{game_id}",
+                    'league': 'cbb',
+                    'date': current.strftime("%Y-%m-%d"),
+                    'season': season_name,
+                    'home_team': home['team']['abbreviation'],
+                    'away_team': away['team']['abbreviation'],
+                    'home_score': int(home['score']),
+                    'away_score': int(away['score']),
+                    'overtime': 0,
+                })
+
+            current += timedelta(days=1)
+
+    return all_games
+
+
+def fetch_mls_games(seasons=None):
+    """Fetch MLS game results via ESPN API."""
+    if seasons is None:
+        seasons = [
+            ("2025", "20250201", "20251115"),
+            ("2026", "20260201", "20261115"),
+        ]
+
+    all_games = []
+    for season_name, start_date, end_date in seasons:
+        print(f"  Fetching MLS {season_name}...")
+        current = datetime.strptime(start_date, "%Y%m%d")
+        end = min(datetime.strptime(end_date, "%Y%m%d"), datetime.now())
+
+        while current <= end:
+            date_str = current.strftime("%Y%m%d")
+            url = (f"https://site.api.espn.com/apis/site/v2/sports/soccer/"
+                   f"usa.1/scoreboard?dates={date_str}&limit=50")
+            try:
+                req = urllib.request.Request(url, headers={'User-Agent': 'Mozilla/5.0'})
+                resp = urllib.request.urlopen(req, timeout=10)
+                data = json.loads(resp.read())
+            except Exception:
+                current += timedelta(days=1)
+                continue
+
+            for event in data.get('events', []):
+                comp = event['competitions'][0]
+                status = comp['status']['type']['description']
+                if status != 'Full Time' and status != 'Final':
+                    continue
+
+                teams = comp['competitors']
+                home = [t for t in teams if t['homeAway'] == 'home'][0]
+                away = [t for t in teams if t['homeAway'] == 'away'][0]
+                game_id = event['id']
+
+                all_games.append({
+                    'id': f"mls-{game_id}",
+                    'league': 'mls',
+                    'date': current.strftime("%Y-%m-%d"),
+                    'season': season_name,
+                    'home_team': home['team']['abbreviation'],
+                    'away_team': away['team']['abbreviation'],
+                    'home_score': int(home['score']),
+                    'away_score': int(away['score']),
+                    'overtime': 0,
+                })
+
+            current += timedelta(days=1)
+
+    return all_games
+
+
 def load_games_to_db(games, db=None):
     """Insert games into SQLite, skipping duplicates."""
     if db is None:
@@ -410,6 +534,44 @@ def predict_game(league, away_team, home_team, ratings=None):
     return home_prob, away_prob
 
 
+def predict_game_3way(league, away_team, home_team, ratings=None):
+    """
+    Predict 3-way outcome for soccer (home win / draw / away win).
+    Uses Elo expected score + empirical draw rate adjustment.
+    Returns (home_win_prob, draw_prob, away_win_prob).
+    """
+    if ratings is None:
+        db = get_db()
+        rows = db.execute("""
+            SELECT team, rating FROM elo_ratings WHERE league = ?
+        """, (league,)).fetchall()
+        ratings = {r['team']: r['rating'] for r in rows}
+
+    config = ELO_CONFIG[league]
+
+    home_rating = ratings.get(home_team, config['initial_rating']) + config['home_advantage']
+    away_rating = ratings.get(away_team, config['initial_rating'])
+
+    # Base Elo expected scores
+    home_exp = expected_score(home_rating, away_rating)
+    away_exp = 1.0 - home_exp
+
+    # Draw probability: higher when teams are close in strength
+    # Empirical MLS draw rate is ~23%. Adjust based on Elo closeness.
+    base_draw_rate = 0.23
+    elo_diff = abs(home_rating - away_rating)
+    # Draw more likely when teams are close, less when big gap
+    draw_adj = max(0.10, base_draw_rate * (1.0 - elo_diff / 800.0))
+    draw_adj = min(draw_adj, 0.40)
+
+    # Redistribute: subtract draw probability proportionally from both sides
+    home_prob = home_exp * (1.0 - draw_adj)
+    away_prob = away_exp * (1.0 - draw_adj)
+    draw_prob = draw_adj
+
+    return home_prob, draw_prob, away_prob
+
+
 def get_todays_games_nba():
     """Fetch today's NBA schedule from ESPN."""
     today = datetime.now().strftime("%Y%m%d")
@@ -472,11 +634,67 @@ def get_todays_games_nhl():
     return games
 
 
-# ═══════════════════════════════════════════════════════════════
-# CLI INTERFACE
-# ═══════════════════════════════════════════════════════════════
+def get_todays_games_cbb():
+    """Fetch today's college basketball schedule from ESPN."""
+    today = datetime.now().strftime("%Y%m%d")
+    url = (f"https://site.api.espn.com/apis/site/v2/sports/basketball/"
+           f"mens-college-basketball/scoreboard?dates={today}&limit=200&groups=50")
+    try:
+        req = urllib.request.Request(url, headers={'User-Agent': 'Mozilla/5.0'})
+        resp = urllib.request.urlopen(req, timeout=10)
+        data = json.loads(resp.read())
+    except Exception as e:
+        print(f"Error fetching CBB schedule: {e}")
+        return []
 
-def cmd_build(args):
+    games = []
+    for event in data.get('events', []):
+        comp = event['competitions'][0]
+        teams = comp['competitors']
+        home = [t for t in teams if t['homeAway'] == 'home'][0]
+        away = [t for t in teams if t['homeAway'] == 'away'][0]
+        status = comp['status']['type']['description']
+
+        games.append({
+            'home_team': home['team']['abbreviation'],
+            'away_team': away['team']['abbreviation'],
+            'home_name': home['team']['displayName'],
+            'away_name': away['team']['displayName'],
+            'status': status,
+            'game_time': event.get('date', ''),
+        })
+    return games
+
+
+def get_todays_games_mls():
+    """Fetch today's MLS schedule from ESPN."""
+    today = datetime.now().strftime("%Y%m%d")
+    url = f"https://site.api.espn.com/apis/site/v2/sports/soccer/usa.1/scoreboard?dates={today}&limit=50"
+    try:
+        req = urllib.request.Request(url, headers={'User-Agent': 'Mozilla/5.0'})
+        resp = urllib.request.urlopen(req, timeout=10)
+        data = json.loads(resp.read())
+    except Exception as e:
+        print(f"Error fetching MLS schedule: {e}")
+        return []
+
+    games = []
+    for event in data.get('events', []):
+        comp = event['competitions'][0]
+        teams = comp['competitors']
+        home = [t for t in teams if t['homeAway'] == 'home'][0]
+        away = [t for t in teams if t['homeAway'] == 'away'][0]
+        status = comp['status']['type']['description']
+
+        games.append({
+            'home_team': home['team']['abbreviation'],
+            'away_team': away['team']['abbreviation'],
+            'home_name': home['team']['displayName'],
+            'away_name': away['team']['displayName'],
+            'status': status,
+            'game_time': event.get('date', ''),
+        })
+    return games
     """Build/rebuild Elo ratings from historical data."""
     db = get_db()
 
@@ -502,11 +720,33 @@ def cmd_build(args):
     nhl_ratings = calculate_elo_ratings('nhl')
     print(f"  Calculated ratings for {len(nhl_ratings)} NHL teams")
 
+    # CBB
+    print("\n🏀 Loading CBB data...")
+    cbb_games = fetch_cbb_games()
+    n_cbb = load_games_to_db(cbb_games, db)
+    print(f"  Loaded {n_cbb} new CBB games ({len(cbb_games)} total)")
+
+    cbb_ratings = calculate_elo_ratings('cbb')
+    print(f"  Calculated ratings for {len(cbb_ratings)} CBB teams")
+
+    # MLS
+    print("\n⚽ Loading MLS data...")
+    mls_games = fetch_mls_games()
+    n_mls = load_games_to_db(mls_games, db)
+    print(f"  Loaded {n_mls} new MLS games ({len(mls_games)} total)")
+
+    mls_ratings = calculate_elo_ratings('mls')
+    print(f"  Calculated ratings for {len(mls_ratings)} MLS teams")
+
     # Log
     db.execute("INSERT INTO build_log (league, games_loaded, seasons) VALUES (?, ?, ?)",
                ('nba', len(nba_games), '2024-25,2025-26'))
     db.execute("INSERT INTO build_log (league, games_loaded, seasons) VALUES (?, ?, ?)",
                ('nhl', len(nhl_games), '2024-25,2025-26'))
+    db.execute("INSERT INTO build_log (league, games_loaded, seasons) VALUES (?, ?, ?)",
+               ('cbb', len(cbb_games), '2024-25,2025-26'))
+    db.execute("INSERT INTO build_log (league, games_loaded, seasons) VALUES (?, ?, ?)",
+               ('mls', len(mls_games), '2025,2026'))
     db.commit()
 
     total = db.execute("SELECT COUNT(*) as c FROM games").fetchone()['c']
@@ -578,6 +818,10 @@ def cmd_today(args):
         games = get_todays_games_nba()
     elif league == 'nhl':
         games = get_todays_games_nhl()
+    elif league == 'cbb':
+        games = get_todays_games_cbb()
+    elif league == 'mls':
+        games = get_todays_games_mls()
     else:
         print(f"Unsupported league: {league}")
         return
@@ -624,9 +868,19 @@ def cmd_update(args):
     n_nhl = load_games_to_db(nhl_games, db)
     print(f"  NHL: {n_nhl} new games")
 
+    cbb_games = fetch_cbb_games(seasons=[("2025-26", "20251101", "20260410")])
+    n_cbb = load_games_to_db(cbb_games, db)
+    print(f"  CBB: {n_cbb} new games")
+
+    mls_games = fetch_mls_games(seasons=[("2026", "20260201", "20261115")])
+    n_mls = load_games_to_db(mls_games, db)
+    print(f"  MLS: {n_mls} new games")
+
     # Recalculate
     calculate_elo_ratings('nba')
     calculate_elo_ratings('nhl')
+    calculate_elo_ratings('cbb')
+    calculate_elo_ratings('mls')
     print("✅ Ratings updated.")
 
 

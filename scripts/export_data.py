@@ -76,7 +76,7 @@ def export(db_path):
     }
 
     # --- Elo Ratings ---
-    for league in ["nba", "nhl"]:
+    for league in ["nba", "nhl", "cbb", "mls"]:
         rows = conn.execute(
             "SELECT * FROM elo_ratings WHERE league = ? ORDER BY rating DESC",
             (league,),
@@ -120,7 +120,7 @@ def export(db_path):
 
     # --- Sport Breakdown ---
     breakdown = []
-    for league in ["nba", "nhl"]:
+    for league in ["nba", "nhl", "cbb", "mls"]:
         stats = conn.execute(
             """SELECT COUNT(*) as total,
                SUM(CASE WHEN outcome = 'WIN' THEN 1 ELSE 0 END) as wins,

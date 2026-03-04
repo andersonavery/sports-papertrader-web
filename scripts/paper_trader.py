@@ -25,8 +25,9 @@ import uuid
 # Import from elo_model (same directory)
 sys.path.insert(0, str(Path(__file__).parent))
 from elo_model import (
-    get_db, predict_game, ELO_CONFIG,
+    get_db, predict_game, predict_game_3way, ELO_CONFIG,
     get_todays_games_nba, get_todays_games_nhl,
+    get_todays_games_cbb, get_todays_games_mls,
 )
 
 # ═══════════════════════════════════════════════════════════════
@@ -43,37 +44,87 @@ MIN_POSITION = 5.0        # $5 minimum position
 
 # ESPN abbreviation → Polymarket slug abbreviation mapping
 # (for constructing market slugs to check BBOs)
+# ESPN abbreviation → Polymarket slug abbreviation mapping
+# (for constructing market slugs to check BBOs)
+# Keyed by "{league}:{espn_abbr}" when there are conflicts across sports
 ESPN_TO_POLY = {
     # NBA
-    "GSW": "gs", "NYK": "ny", "PHX": "pho", "SAS": "sa", "NOP": "no",
-    "OKC": "okc", "DEN": "den", "CLE": "cle", "BOS": "bos", "DET": "det",
-    "HOU": "hou", "SAC": "sac", "UTA": "uta", "MIL": "mil", "CHI": "chi",
-    "BKN": "bkn", "CHA": "cha", "MIN": "min", "LAL": "lal", "LAC": "lac",
-    "TOR": "tor", "PHI": "phi", "IND": "ind", "ATL": "atl", "ORL": "orl",
-    "POR": "por", "WAS": "was", "MEM": "mem", "MIA": "mia", "DAL": "dal",
+    "nba:GSW": "gs", "nba:NYK": "ny", "nba:PHX": "pho", "nba:SAS": "sa", "nba:NOP": "no",
+    "nba:OKC": "okc", "nba:DEN": "den", "nba:CLE": "cle", "nba:BOS": "bos", "nba:DET": "det",
+    "nba:HOU": "hou", "nba:SAC": "sac", "nba:UTA": "uta", "nba:MIL": "mil", "nba:CHI": "chi",
+    "nba:BKN": "bkn", "nba:CHA": "cha", "nba:MIN": "min", "nba:LAL": "lal", "nba:LAC": "lac",
+    "nba:TOR": "tor", "nba:PHI": "phi", "nba:IND": "ind", "nba:ATL": "atl", "nba:ORL": "orl",
+    "nba:POR": "por", "nba:WAS": "was", "nba:MEM": "mem", "nba:MIA": "mia", "nba:DAL": "dal",
     # NHL
-    "WPG": "wpg", "COL": "col", "EDM": "edm", "FLA": "fla", "DAL": "dal",
-    "NYR": "nyr", "CAR": "car", "NJ": "nj", "TB": "tb", "BOS": "bos",
-    "MIN": "min", "OTT": "ott", "VAN": "van", "CGY": "cgy", "PIT": "pit",
-    "STL": "stl", "CBJ": "cbj", "NSH": "nas", "SEA": "sea", "LA": "la",
-    "ANA": "ana", "DET": "det", "BUF": "buf", "CHI": "chi", "ARI": "ari",
-    "MTL": "mon", "NYI": "nyi", "WSH": "was", "SJ": "sj", "VGK": "vgk",
-    "TOR": "tor", "PHI": "phi", "UTA": "uta",
+    "nhl:WPG": "wpg", "nhl:COL": "col", "nhl:EDM": "edm", "nhl:FLA": "fla", "nhl:DAL": "dal",
+    "nhl:NYR": "nyr", "nhl:CAR": "car", "nhl:NJ": "nj", "nhl:TB": "tb", "nhl:BOS": "bos",
+    "nhl:MIN": "min", "nhl:OTT": "ott", "nhl:VAN": "van", "nhl:CGY": "cgy", "nhl:PIT": "pit",
+    "nhl:STL": "stl", "nhl:CBJ": "cbj", "nhl:NSH": "nas", "nhl:SEA": "sea", "nhl:LA": "la",
+    "nhl:ANA": "ana", "nhl:DET": "det", "nhl:BUF": "buf", "nhl:CHI": "chi", "nhl:ARI": "ari",
+    "nhl:MTL": "mon", "nhl:NYI": "nyi", "nhl:WSH": "was", "nhl:SJ": "sj", "nhl:VGK": "vgk",
+    "nhl:TOR": "tor", "nhl:PHI": "phi", "nhl:UTA": "uta",
+    # CBB (ESPN displayAbbreviation → Polymarket slug)
+    "cbb:TEX": "tx", "cbb:ARK": "ark", "cbb:BAY": "bayl", "cbb:HOU": "hou",
+    "cbb:UMD": "mary", "cbb:MSU": "mst", "cbb:OSU": "ohiost", "cbb:PSU": "pennst",
+    "cbb:PUR": "pur", "cbb:RUTG": "rutger", "cbb:NW": "nw", "cbb:WIS": "wisc",
+    "cbb:USC": "usc", "cbb:WASH": "wash", "cbb:ILL": "ill", "cbb:IU": "ind",
+    "cbb:PITT": "pitt", "cbb:ND": "nd", "cbb:FSU": "flst", "cbb:STAN": "stan",
+    "cbb:NOVA": "vill", "cbb:DEP": "depaul", "cbb:LUC": "loych", "cbb:SLU": "stlou",
+    "cbb:UNM": "nmx", "cbb:UNT": "ntx", "cbb:CSU": "colst", "cbb:MEM": "mphs",
+    "cbb:HAW": "hawaii", "cbb:UCR": "ucrvs", "cbb:UCI": "ucirv", "cbb:UCD": "ucdv",
+    "cbb:UCSD": "ucsd", "cbb:CP": "calpol", "cbb:CSUF": "csufl", "cbb:LBSU": "lbst",
+    "cbb:LMU": "loymry", "cbb:USD": "sd", "cbb:ORU": "oral", "cbb:UNF": "nfl",
+    "cbb:RICE": "rice", "cbb:LR": "arlr", "cbb:WEBB": "gardwb", "cbb:UPST": "scup",
+    "cbb:UE": "evans", "cbb:UNI": "niowa", "cbb:NMSU": "nmxst", "cbb:KC": "umkc",
+    "cbb:UWG": "uwg", "cbb:BAMA": "bama", "cbb:AUB": "aub", "cbb:UK": "uk",
+    "cbb:LSU": "lsu", "cbb:TENN": "tenn", "cbb:FLA": "fla", "cbb:UGA": "uga",
+    "cbb:MIZ": "miz", "cbb:MISS": "miss", "cbb:SCAR": "scar", "cbb:TXAM": "txam",
+    "cbb:VAN": "vandy", "cbb:OKLA": "okla",
+    "cbb:IOWA": "iowa", "cbb:MICH": "mich", "cbb:MINN": "minn", "cbb:NEB": "neb",
+    "cbb:ORE": "ore", "cbb:UCLA": "ucla",
+    "cbb:DUKE": "duke", "cbb:UNC": "unc", "cbb:BC": "bc", "cbb:CLEM": "clem",
+    "cbb:GT": "gt", "cbb:LOU": "lou", "cbb:SYR": "syr", "cbb:UVA": "uva",
+    "cbb:VT": "vatech", "cbb:WAKE": "wake", "cbb:SMU": "smu", "cbb:CAL": "cal",
+    "cbb:ARIZ": "ariz", "cbb:ASU": "asu", "cbb:BYU": "byu", "cbb:CIN": "cin",
+    "cbb:COLO": "colo", "cbb:ISU": "iast", "cbb:KU": "kan", "cbb:KSU": "kanst",
+    "cbb:OKST": "oklst", "cbb:TCU": "tcu", "cbb:TTU": "txtech", "cbb:UCF": "ucf",
+    "cbb:UTAH": "utah", "cbb:WVU": "wvu",
+    "cbb:BUT": "but", "cbb:UCONN": "uconn", "cbb:CREI": "crei", "cbb:GTOWN": "gtown",
+    "cbb:MARQ": "marq", "cbb:PROV": "prov", "cbb:SH": "sh", "cbb:STJ": "stj",
+    "cbb:XAV": "xav", "cbb:GONZ": "gonz", "cbb:DAY": "day", "cbb:SDSU": "sdsu",
+    "cbb:PEPP": "pepp", "cbb:PORT": "port", "cbb:CSUN": "csunr", "cbb:CSUB": "csu",
+    "cbb:UTEP": "utep", "cbb:USF": "sfl", "cbb:FAIR": "fair", "cbb:MAN": "manh",
+    # MLS (ESPN abbreviation → Polymarket slug)
+    "mls:ATL": "atl", "mls:ATX": "aus", "mls:MTL": "mim", "mls:CLT": "clt",
+    "mls:CHI": "chi", "mls:COL": "col", "mls:CLB": "clb", "mls:DC": "dcu",
+    "mls:CIN": "fcc", "mls:DAL": "dal", "mls:HOU": "hou", "mls:MIA": "mia",
+    "mls:LA": "lag", "mls:LAFC": "laf", "mls:MIN": "min", "mls:NSH": "nas",
+    "mls:NE": "ner", "mls:NYC": "nyc", "mls:RBNY": "nyr", "mls:ORL": "orl",
+    "mls:PHI": "phi", "mls:POR": "por", "mls:RSL": "rsl", "mls:SD": "sdg",
+    "mls:SJ": "sje", "mls:SEA": "sea", "mls:SKC": "skc", "mls:STL": "stl",
+    "mls:TOR": "tor", "mls:VAN": "vwh",
 }
 
 
-def espn_to_poly_abbr(espn_abbr):
+def espn_to_poly_abbr(espn_abbr, league=None):
     """Convert ESPN team abbreviation to Polymarket slug abbreviation."""
+    if league:
+        # Try league-specific lookup first
+        key = f"{league}:{espn_abbr}"
+        if key in ESPN_TO_POLY:
+            return ESPN_TO_POLY[key]
+    # Fallback: try without league prefix (legacy NBA/NHL)
     return ESPN_TO_POLY.get(espn_abbr, espn_abbr.lower())
 
 
 def build_market_slug(league, away_espn, home_espn, date_str=None):
     """Build a Polymarket market slug from ESPN abbreviations."""
-    away = espn_to_poly_abbr(away_espn)
-    home = espn_to_poly_abbr(home_espn)
+    away = espn_to_poly_abbr(away_espn, league)
+    home = espn_to_poly_abbr(home_espn, league)
     if date_str is None:
         date_str = datetime.now().strftime("%Y-%m-%d")
-    return f"aec-{league}-{away}-{home}-{date_str}"
+    prefix = "atc" if league == "mls" else "aec"
+    return f"{prefix}-{league}-{away}-{home}-{date_str}"
 
 
 # ═══════════════════════════════════════════════════════════════
@@ -161,7 +212,7 @@ def scan_and_trade(league=None):
         return
 
     bankroll = get_current_bankroll(db)
-    leagues = [league] if league else ['nba', 'nhl']
+    leagues = [league] if league else ['nba', 'nhl', 'cbb', 'mls']
 
     print(f"{'═' * 70}")
     print(f"  PAPER TRADING SCAN — {today}")
@@ -177,11 +228,17 @@ def scan_and_trade(league=None):
 
     all_opportunities = []
 
+    LEAGUE_ICONS = {'nba': '🏀', 'nhl': '🏒', 'cbb': '🎓', 'mls': '⚽'}
+
     for lg in leagues:
         if lg == 'nba':
             games = get_todays_games_nba()
         elif lg == 'nhl':
             games = get_todays_games_nhl()
+        elif lg == 'cbb':
+            games = get_todays_games_cbb()
+        elif lg == 'mls':
+            games = get_todays_games_mls()
         else:
             continue
 
@@ -189,55 +246,84 @@ def scan_and_trade(league=None):
             print(f"\n  No {lg.upper()} games found for today.")
             continue
 
-        print(f"\n  🏀 {lg.upper()} Games:" if lg == 'nba' else f"\n  🏒 {lg.upper()} Games:")
-        print(f"  {'Matchup':<25} {'Elo Away':>9} {'Elo Home':>9} {'Edge':>7} {'Signal'}")
-        print(f"  {'─' * 25} {'─' * 9} {'─' * 9} {'─' * 7} {'─' * 10}")
+        icon = LEAGUE_ICONS.get(lg, '🏟️')
+        print(f"\n  {icon} {lg.upper()} Games:")
+
+        if lg == 'mls':
+            # 3-way market: home/draw/away
+            print(f"  {'Matchup':<25} {'Home%':>7} {'Draw%':>7} {'Away%':>7} {'Signal'}")
+            print(f"  {'─' * 25} {'─' * 7} {'─' * 7} {'─' * 7} {'─' * 10}")
+        else:
+            print(f"  {'Matchup':<25} {'Elo Away':>9} {'Elo Home':>9} {'Edge':>7} {'Signal'}")
+            print(f"  {'─' * 25} {'─' * 9} {'─' * 9} {'─' * 7} {'─' * 10}")
 
         for game in games:
             if game['status'] not in ('Scheduled', 'Pre-Game'):
                 continue
 
-            home_prob, away_prob = predict_game(lg, game['away_team'], game['home_team'], ratings.get(lg, {}))
+            if lg == 'mls':
+                # 3-way prediction for soccer
+                home_prob, draw_prob, away_prob = predict_game_3way(
+                    lg, game['away_team'], game['home_team'], ratings.get(lg, {}))
 
-            # The Polymarket market is on the AWAY team winning (YES = away wins)
-            # We check both sides
-            slug = build_market_slug(lg, game['away_team'], game['home_team'], today)
+                # MLS slug format: atc-mls-{home}-{away}-{date}
+                base_slug = build_market_slug(lg, game['away_team'], game['home_team'], today)
 
-            # For each game, check if either side has edge
-            # Away team: edge = elo_away_prob - polymarket_away_implied
-            # Home team: edge = elo_home_prob - polymarket_home_implied
-            # Since we don't have live Polymarket data in this script,
-            # we record the Elo prediction and flag opportunities
+                # Check each outcome for edge
+                for team, prob, direction, suffix in [
+                    (game['home_team'], home_prob, 'YES', f"-{espn_to_poly_abbr(game['home_team'], lg)}"),
+                    (game['away_team'], away_prob, 'YES', f"-{espn_to_poly_abbr(game['away_team'], lg)}"),
+                ]:
+                    deviation = abs(prob - 0.33)  # vs 3-way fair value
+                    signal = "STRONG" if deviation > 0.20 else "MODERATE" if deviation > 0.10 else "WEAK"
+                    if prob > 0.40 and deviation > 0.07:
+                        all_opportunities.append({
+                            'league': lg,
+                            'game': game,
+                            'team': team,
+                            'direction': direction,
+                            'elo_prob': prob,
+                            'deviation': deviation,
+                            'signal': signal,
+                            'slug': base_slug + suffix,
+                        })
 
-            # Check for extreme Elo edges (>= threshold)
-            # Against a "fair line" of 50%, how far off is Elo?
-            # In practice, we'll compare to Polymarket in the agent
-            for team, prob, direction in [
-                (game['away_team'], away_prob, 'YES'),
-                (game['home_team'], home_prob, 'NO'),  # buying NO on away = buying home
-            ]:
-                # Flag if Elo has strong opinion (deviation from 50%)
-                deviation = abs(prob - 0.5)
-                signal = "STRONG" if deviation > 0.25 else "MODERATE" if deviation > 0.15 else "WEAK"
+                matchup = f"{game['away_team']} @ {game['home_team']}"
+                max_prob = max(home_prob, away_prob)
+                signal = "⭐ STRONG" if max_prob > 0.53 else "🔶 MOD" if max_prob > 0.43 else "⚪ WEAK"
+                print(f"  {matchup:<25} {home_prob*100:>6.1f}% {draw_prob*100:>6.1f}% "
+                      f"{away_prob*100:>6.1f}% {signal}")
+            else:
+                # 2-way prediction for basketball/hockey
+                home_prob, away_prob = predict_game(lg, game['away_team'], game['home_team'], ratings.get(lg, {}))
 
-                if prob > 0.5 and deviation > 0.10:  # Only flag if team is favored
-                    all_opportunities.append({
-                        'league': lg,
-                        'game': game,
-                        'team': team,
-                        'direction': direction,
-                        'elo_prob': prob,
-                        'deviation': deviation,
-                        'signal': signal,
-                        'slug': slug,
-                    })
+                slug = build_market_slug(lg, game['away_team'], game['home_team'], today)
 
-            matchup = f"{game['away_team']} @ {game['home_team']}"
-            elo_away = ratings.get(lg, {}).get(game['away_team'], 1500)
-            elo_home = ratings.get(lg, {}).get(game['home_team'], 1500)
-            max_dev = max(away_prob, home_prob) - 0.5
-            signal = "⭐ STRONG" if max_dev > 0.25 else "🔶 MOD" if max_dev > 0.15 else "⚪ WEAK"
-            print(f"  {matchup:<25} {elo_away:>9.1f} {elo_home:>9.1f} {max_dev*100:>6.1f}% {signal}")
+                for team, prob, direction in [
+                    (game['away_team'], away_prob, 'YES'),
+                    (game['home_team'], home_prob, 'NO'),
+                ]:
+                    deviation = abs(prob - 0.5)
+                    signal = "STRONG" if deviation > 0.25 else "MODERATE" if deviation > 0.15 else "WEAK"
+
+                    if prob > 0.5 and deviation > 0.10:
+                        all_opportunities.append({
+                            'league': lg,
+                            'game': game,
+                            'team': team,
+                            'direction': direction,
+                            'elo_prob': prob,
+                            'deviation': deviation,
+                            'signal': signal,
+                            'slug': slug,
+                        })
+
+                matchup = f"{game['away_team']} @ {game['home_team']}"
+                elo_away = ratings.get(lg, {}).get(game['away_team'], 1500)
+                elo_home = ratings.get(lg, {}).get(game['home_team'], 1500)
+                max_dev = max(away_prob, home_prob) - 0.5
+                signal = "⭐ STRONG" if max_dev > 0.25 else "🔶 MOD" if max_dev > 0.15 else "⚪ WEAK"
+                print(f"  {matchup:<25} {elo_away:>9.1f} {elo_home:>9.1f} {max_dev*100:>6.1f}% {signal}")
 
     # Print strong signals — agent must provide real BBO prices to place trades
     strong_opps = [o for o in all_opportunities if o['signal'] == 'STRONG']

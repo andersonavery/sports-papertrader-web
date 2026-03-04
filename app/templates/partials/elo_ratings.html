@@ -1,61 +1,65 @@
 <div class="card mb-4">
-  <h3 class="text-sm font-semibold text-slate-300 mb-3">🏀 NBA Elo Ratings</h3>
-  <div class="overflow-x-auto">
-    <table class="w-full text-sm">
-      <thead>
-        <tr class="text-xs text-slate-400 uppercase tracking-wider border-b border-slate-700/50">
-          <th class="text-left py-1.5">#</th>
-          <th class="text-left py-1.5">Team</th>
-          <th class="text-right py-1.5">Elo</th>
-          <th class="text-right py-1.5">W-L</th>
-        </tr>
-      </thead>
-      <tbody>
-        {% for r in nba_ratings %}
-        <tr class="border-b border-slate-700/20 hover:bg-surface-hover/50">
-          <td class="py-1 text-slate-500">{{ loop.index }}</td>
-          <td class="py-1 font-medium">{{ r.team }}</td>
-          <td class="py-1 text-right font-mono
-            {% if r.rating > 1650 %}text-emerald-400
-            {% elif r.rating > 1500 %}text-blue-400
-            {% elif r.rating > 1350 %}text-slate-300
-            {% else %}text-red-400{% endif %}
-          ">{{ "%.0f"|format(r.rating) }}</td>
-          <td class="py-1 text-right text-slate-400">{{ r.wins }}-{{ r.losses }}</td>
-        </tr>
-        {% endfor %}
-      </tbody>
-    </table>
+  <!-- Elo Ratings Tabs -->
+  <div class="flex gap-2 mb-3 border-b border-slate-700/50 pb-2">
+    <button class="elo-tab text-xs px-2 py-1 rounded font-semibold bg-blue-600/30 text-blue-400" data-league="nba" onclick="showEloTab('nba')">🏀 NBA</button>
+    <button class="elo-tab text-xs px-2 py-1 rounded font-semibold text-slate-400 hover:text-slate-300" data-league="nhl" onclick="showEloTab('nhl')">🏒 NHL</button>
+    <button class="elo-tab text-xs px-2 py-1 rounded font-semibold text-slate-400 hover:text-slate-300" data-league="cbb" onclick="showEloTab('cbb')">🎓 CBB</button>
+    <button class="elo-tab text-xs px-2 py-1 rounded font-semibold text-slate-400 hover:text-slate-300" data-league="mls" onclick="showEloTab('mls')">⚽ MLS</button>
   </div>
+
+  {% for league_key, league_data, league_label in [
+    ('nba', nba_ratings, 'NBA'),
+    ('nhl', nhl_ratings, 'NHL'),
+    ('cbb', cbb_ratings, 'CBB'),
+    ('mls', mls_ratings, 'MLS'),
+  ] %}
+  <div id="elo-{{ league_key }}" class="elo-panel {% if league_key != 'nba' %}hidden{% endif %}">
+    <div class="overflow-x-auto" style="max-height: 400px; overflow-y: auto;">
+      <table class="w-full text-sm">
+        <thead class="sticky top-0 bg-slate-800">
+          <tr class="text-xs text-slate-400 uppercase tracking-wider border-b border-slate-700/50">
+            <th class="text-left py-1.5">#</th>
+            <th class="text-left py-1.5">Team</th>
+            <th class="text-right py-1.5">Elo</th>
+            <th class="text-right py-1.5">W-L</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for r in league_data %}
+          {% if loop.index <= 30 %}
+          <tr class="border-b border-slate-700/20 hover:bg-surface-hover/50">
+            <td class="py-1 text-slate-500">{{ loop.index }}</td>
+            <td class="py-1 font-medium">{{ r.team }}</td>
+            <td class="py-1 text-right font-mono
+              {% if r.rating > 1600 %}text-emerald-400
+              {% elif r.rating > 1500 %}text-blue-400
+              {% elif r.rating > 1400 %}text-slate-300
+              {% else %}text-red-400{% endif %}
+            ">{{ "%.0f"|format(r.rating) }}</td>
+            <td class="py-1 text-right text-slate-400">{{ r.wins }}-{{ r.losses }}</td>
+          </tr>
+          {% endif %}
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    {% if league_data|length > 30 %}
+    <div class="text-xs text-slate-500 mt-1 text-center">Showing top 30 of {{ league_data|length }} teams</div>
+    {% endif %}
+  </div>
+  {% endfor %}
 </div>
 
-<div class="card">
-  <h3 class="text-sm font-semibold text-slate-300 mb-3">🏒 NHL Elo Ratings</h3>
-  <div class="overflow-x-auto">
-    <table class="w-full text-sm">
-      <thead>
-        <tr class="text-xs text-slate-400 uppercase tracking-wider border-b border-slate-700/50">
-          <th class="text-left py-1.5">#</th>
-          <th class="text-left py-1.5">Team</th>
-          <th class="text-right py-1.5">Elo</th>
-          <th class="text-right py-1.5">W-L</th>
-        </tr>
-      </thead>
-      <tbody>
-        {% for r in nhl_ratings %}
-        <tr class="border-b border-slate-700/20 hover:bg-surface-hover/50">
-          <td class="py-1 text-slate-500">{{ loop.index }}</td>
-          <td class="py-1 font-medium">{{ r.team }}</td>
-          <td class="py-1 text-right font-mono
-            {% if r.rating > 1550 %}text-emerald-400
-            {% elif r.rating > 1500 %}text-blue-400
-            {% elif r.rating > 1450 %}text-slate-300
-            {% else %}text-red-400{% endif %}
-          ">{{ "%.0f"|format(r.rating) }}</td>
-          <td class="py-1 text-right text-slate-400">{{ r.wins }}-{{ r.losses }}</td>
-        </tr>
-        {% endfor %}
-      </tbody>
-    </table>
-  </div>
-</div>
+<script>
+function showEloTab(league) {
+  document.querySelectorAll('.elo-panel').forEach(p => p.classList.add('hidden'));
+  document.querySelectorAll('.elo-tab').forEach(t => {
+    t.classList.remove('bg-blue-600/30', 'text-blue-400');
+    t.classList.add('text-slate-400');
+  });
+  document.getElementById('elo-' + league).classList.remove('hidden');
+  const tab = document.querySelector('.elo-tab[data-league="' + league + '"]');
+  tab.classList.add('bg-blue-600/30', 'text-blue-400');
+  tab.classList.remove('text-slate-400');
+}
+</script>

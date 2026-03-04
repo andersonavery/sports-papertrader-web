@@ -13,6 +13,8 @@ async def dashboard(request: Request):
     trades = db.get_trades(limit=30)
     nba_ratings = db.get_elo_ratings("nba")[:15]
     nhl_ratings = db.get_elo_ratings("nhl")[:15]
+    cbb_ratings = db.get_elo_ratings("cbb")[:30]
+    mls_ratings = db.get_elo_ratings("mls")[:30]
     calibration, brier = db.get_calibration_data()
     sport_breakdown = db.get_sport_breakdown()
     risk = db.get_risk_metrics()
@@ -23,6 +25,8 @@ async def dashboard(request: Request):
         "trades": trades,
         "nba_ratings": nba_ratings,
         "nhl_ratings": nhl_ratings,
+        "cbb_ratings": cbb_ratings,
+        "mls_ratings": mls_ratings,
         "calibration": calibration,
         "brier": brier,
         "sport_breakdown": sport_breakdown,
