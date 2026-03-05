@@ -11,6 +11,8 @@ templates = Jinja2Templates(directory="app/templates")
 async def dashboard(request: Request):
     stats = db.get_summary_stats()
     trades = db.get_trades(limit=30)
+    shadow_trades = db.get_shadow_trades(limit=20)
+    shadow_stats = db.get_shadow_stats()
     nba_ratings = db.get_elo_ratings("nba")[:15]
     nhl_ratings = db.get_elo_ratings("nhl")[:15]
     cbb_ratings = db.get_elo_ratings("cbb")[:30]
@@ -23,6 +25,8 @@ async def dashboard(request: Request):
         "request": request,
         "stats": stats,
         "trades": trades,
+        "shadow_trades": shadow_trades,
+        "shadow_stats": shadow_stats,
         "nba_ratings": nba_ratings,
         "nhl_ratings": nhl_ratings,
         "cbb_ratings": cbb_ratings,

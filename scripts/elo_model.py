@@ -695,6 +695,13 @@ def get_todays_games_mls():
             'game_time': event.get('date', ''),
         })
     return games
+
+
+# ═══════════════════════════════════════════════════════════════
+# CLI INTERFACE
+# ═══════════════════════════════════════════════════════════════
+
+def cmd_build(args):
     """Build/rebuild Elo ratings from historical data."""
     db = get_db()
 

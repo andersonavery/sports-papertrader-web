@@ -75,6 +75,83 @@ def export(db_path):
         "starting_bankroll": VIRTUAL_BANKROLL,
     }
 
+    # --- True Stats (excluding pre-calibration trades with fake prices) ---
+    true_filter = "outcome IS NOT NULL AND (data_quality IS NULL OR data_quality != 'fake_poly_price')"
+    try:
+        t_resolved = conn.execute(f"SELECT COUNT(*) as c FROM paper_trades WHERE {true_filter}").fetchone()["c"]
+        t_wins = conn.execute(f"SELECT COUNT(*) as c FROM paper_trades WHERE {true_filter} AND outcome = 'WIN'").fetchone()["c"]
+        t_losses = conn.execute(f"SELECT COUNT(*) as c FROM paper_trades WHERE {true_filter} AND outcome = 'LOSS'").fetchone()["c"]
+        t_pnl = conn.execute(f"SELECT COALESCE(SUM(pnl), 0) as s FROM paper_trades WHERE {true_filter}").fetchone()["s"]
+        t_invested = conn.execute(f"SELECT COALESCE(SUM(paper_amount), 0) as s FROM paper_trades WHERE {true_filter}").fetchone()["s"]
+        data["true_stats"] = {
+            "resolved": t_resolved,
+            "wins": t_wins,
+            "losses": t_losses,
+            "total_pnl": round(t_pnl, 2),
+            "win_rate": round(t_wins / t_resolved * 100, 1) if t_resolved > 0 else 0,
+            "roi": round(t_pnl / t_invested * 100, 1) if t_invested > 0 else 0,
+            "note": "Excludes 4 pre-calibration trades that used fake $0.50 Polymarket prices",
+        }
+    except Exception:
+        data["true_stats"] = None
+
+    # --- Model Versions & Retrospectives ---
+    try:
+        versions = conn.execute("SELECT * FROM model_versions ORDER BY created_at").fetchall()
+        data["model_versions"] = [dict(v) for v in versions]
+
+        # For each version, compute aggregate retrospective stats
+        version_comparison = []
+        for v in versions:
+            vid = v["version_id"]
+            retro = conn.execute("""
+                SELECT
+                    COUNT(*) as total_trades,
+                    SUM(CASE WHEN would_trade = 1 THEN 1 ELSE 0 END) as trades_taken,
+                    SUM(CASE WHEN would_trade = 0 THEN 1 ELSE 0 END) as trades_skipped,
+                    COALESCE(SUM(would_pnl), 0) as total_pnl
+                FROM trade_retrospectives WHERE model_version = ?
+            """, (vid,)).fetchone()
+
+            # Count wins/losses for trades that would have been taken
+            wins_r = conn.execute("""
+                SELECT COUNT(*) as c FROM trade_retrospectives tr
+                JOIN paper_trades pt ON tr.trade_id = pt.id
+                WHERE tr.model_version = ? AND tr.would_trade = 1 AND pt.outcome = 'WIN'
+            """, (vid,)).fetchone()["c"]
+            losses_r = conn.execute("""
+                SELECT COUNT(*) as c FROM trade_retrospectives tr
+                JOIN paper_trades pt ON tr.trade_id = pt.id
+                WHERE tr.model_version = ? AND tr.would_trade = 1 AND pt.outcome = 'LOSS'
+            """, (vid,)).fetchone()["c"]
+
+            version_comparison.append({
+                "version_id": vid,
+                "description": v["description"],
+                "trades_taken": retro["trades_taken"],
+                "trades_skipped": retro["trades_skipped"],
+                "wins": wins_r,
+                "losses": losses_r,
+                "total_pnl": round(retro["total_pnl"], 2),
+            })
+        data["version_comparison"] = version_comparison
+
+        # Per-trade retrospective detail
+        retro_detail = conn.execute("""
+            SELECT tr.trade_id, tr.model_version, tr.elo_probability, tr.edge_vs_poly,
+                   tr.would_trade, tr.would_pnl,
+                   pt.date, pt.team, pt.direction, pt.league, pt.outcome,
+                   pt.polymarket_price, pt.pnl as actual_pnl, pt.data_quality
+            FROM trade_retrospectives tr
+            JOIN paper_trades pt ON tr.trade_id = pt.id
+            ORDER BY pt.date, pt.created_at, tr.model_version
+        """).fetchall()
+        data["retrospectives"] = [dict(r) for r in retro_detail]
+    except Exception as e:
+        data["model_versions"] = []
+        data["version_comparison"] = []
+        data["retrospectives"] = []
+
     # --- Elo Ratings ---
     for league in ["nba", "nhl", "cbb", "mls"]:
         rows = conn.execute(

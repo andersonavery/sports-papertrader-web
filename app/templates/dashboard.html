@@ -63,6 +63,13 @@
     <div class="card" id="trades-panel">
       {% include "partials/trades_table.html" %}
     </div>
+
+    <!-- Shadow Trades -->
+    {% if shadow_trades %}
+    <div class="card mt-6 border-dashed border-purple-500/40" id="shadow-panel">
+      {% include "partials/shadow_trades.html" %}
+    </div>
+    {% endif %}
   </div>
 
   <!-- Elo Ratings (1 col) -->

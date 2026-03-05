@@ -179,6 +179,19 @@
         <div class="shimmer mb-2"></div><div class="shimmer"></div>
       </div>
     </div>
+
+    <!-- Model Evolution Section -->
+    <div class="mb-6">
+      <div class="card border-dashed border-cyan-500/30" id="model-evolution-panel">
+        <div class="flex items-center gap-2 mb-3">
+          <span class="text-lg">🔬</span>
+          <h3 class="text-sm font-semibold text-cyan-300">Model Evolution</h3>
+          <span class="text-xs bg-cyan-600/20 text-cyan-400 px-2 py-0.5 rounded-full border border-cyan-600/30">versioned</span>
+        </div>
+        <p class="text-xs text-slate-500 mb-3">Track how model changes would have affected past trades.</p>
+        <div class="shimmer mb-2"></div><div class="shimmer"></div>
+      </div>
+    </div>
   </main>
 
   <footer class="border-t border-slate-700/50 mt-12">
@@ -251,6 +264,12 @@ async function loadDashboard() {
 
   // Shadow trades
   renderShadowTrades(data.shadow_trades, data.shadow_stats);
+
+  // Model evolution
+  renderModelEvolution(data);
+
+  // True stats banner
+  renderTrueStats(data);
 }
 
 function renderTrades(trades) {
@@ -533,6 +552,105 @@ function renderShadowTrades(trades, stats) {
   }
   html += '</tbody></table></div>';
   $('#shadow-panel').innerHTML = html;
+}
+
+function renderModelEvolution(data) {
+  const vc = data.version_comparison;
+  const retros = data.retrospectives;
+  if (!vc || !vc.length) {
+    $('#model-evolution-panel').innerHTML += '<p class="text-xs text-slate-500 mt-2">No model versions yet.</p>';
+    return;
+  }
+
+  let html = `<div class="flex items-center gap-2 mb-3">
+    <span class="text-lg">🔬</span>
+    <h3 class="text-sm font-semibold text-cyan-300">Model Evolution</h3>
+    <span class="text-xs bg-cyan-600/20 text-cyan-400 px-2 py-0.5 rounded-full border border-cyan-600/30">versioned</span>
+  </div>
+  <p class="text-xs text-slate-500 mb-3">Each model version is replayed against all historical trades. See how parameter changes would have affected decisions.</p>`;
+
+  // Version comparison cards
+  html += '<div class="grid grid-cols-1 md:grid-cols-' + Math.min(vc.length, 3) + ' gap-3 mb-4">';
+  for (const v of vc) {
+    const isActive = data.model_versions?.find(m => m.version_id === v.version_id && m.is_active);
+    const borderColor = isActive ? 'border-cyan-500/50' : 'border-slate-700/50';
+    const pnl = v.total_pnl;
+    html += `<div class="bg-slate-800/50 rounded-lg p-3 border ${borderColor}">
+      <div class="flex items-center justify-between mb-2">
+        <span class="text-sm font-bold text-cyan-300">${v.version_id}</span>
+        ${isActive ? '<span class="text-xs bg-cyan-600/30 text-cyan-400 px-1.5 py-0.5 rounded">active</span>' : ''}
+      </div>
+      <div class="text-xs text-slate-400 mb-2">${v.description || ''}</div>
+      <div class="grid grid-cols-3 gap-1 text-center">
+        <div><div class="text-sm font-bold text-slate-300">${v.trades_taken}</div><div class="text-xs text-slate-500">Trades</div></div>
+        <div><div class="text-sm font-bold text-slate-300">${v.wins}W-${v.losses}L</div><div class="text-xs text-slate-500">Record</div></div>
+        <div><div class="text-sm font-bold ${pnl >= 0 ? 'text-emerald-400' : 'text-red-400'}">$${fmt(pnl)}</div><div class="text-xs text-slate-500">P&L</div></div>
+      </div>
+    </div>`;
+  }
+  html += '</div>';
+
+  // Per-trade retrospective comparison
+  if (retros && retros.length && vc.length > 1) {
+    const trades = {};
+    for (const r of retros) {
+      if (!trades[r.trade_id]) trades[r.trade_id] = { date: r.date, team: r.team, dir: r.direction, league: r.league, outcome: r.outcome, poly: r.polymarket_price, actual_pnl: r.actual_pnl, data_quality: r.data_quality, versions: {} };
+      trades[r.trade_id].versions[r.model_version] = r;
+    }
+
+    html += `<h4 class="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2 mt-4">Trade-by-Trade Comparison</h4>
+    <div class="overflow-x-auto"><table class="w-full text-sm"><thead>
+      <tr class="text-xs text-cyan-400/70 uppercase tracking-wider border-b border-cyan-700/30">
+        <th class="text-left py-2 pr-2">Trade</th>
+        <th class="text-right py-2 pr-2">Poly</th>`;
+    for (const v of vc) { html += `<th class="text-right py-2 pr-2">${v.version_id} Elo</th><th class="text-center py-2 pr-2">${v.version_id}</th>`; }
+    html += `<th class="text-center py-2">Result</th></tr></thead><tbody>`;
+
+    for (const [tid, t] of Object.entries(trades)) {
+      const fakeFlag = t.data_quality === 'fake_poly_price' ? ' ⚠️' : '';
+      html += `<tr class="border-b border-slate-700/20 ${t.data_quality === 'fake_poly_price' ? 'opacity-50' : ''}">
+        <td class="py-1.5 pr-2 text-xs">${t.date} ${t.team} ${t.dir}${fakeFlag}</td>
+        <td class="py-1.5 pr-2 text-right font-mono text-xs">${t.poly ? (t.poly*100).toFixed(0)+'%' : '—'}</td>`;
+      for (const v of vc) {
+        const r = t.versions[v.version_id];
+        if (r) {
+          const wouldTrade = r.would_trade;
+          const eloStr = (r.elo_probability*100).toFixed(1) + '%';
+          const action = wouldTrade ? (r.would_pnl >= 0 ? '<span class="text-emerald-400">✅</span>' : '<span class="text-red-400">❌</span>') : '<span class="text-slate-500">SKIP</span>';
+          html += `<td class="py-1.5 pr-2 text-right font-mono text-xs">${eloStr}</td><td class="py-1.5 pr-2 text-center text-xs">${action}</td>`;
+        } else {
+          html += '<td class="py-1.5 pr-2 text-right text-xs text-slate-600">—</td><td class="py-1.5 pr-2 text-center text-xs text-slate-600">—</td>';
+        }
+      }
+      const outcomeHtml = t.outcome === 'WIN' ? '<span class="text-emerald-400">WIN</span>' : t.outcome === 'LOSS' ? '<span class="text-red-400">LOSS</span>' : '<span class="text-slate-500">OPEN</span>';
+      html += `<td class="py-1.5 text-center text-xs font-medium">${outcomeHtml}</td></tr>`;
+    }
+    html += '</tbody></table></div>';
+  }
+
+  $('#model-evolution-panel').innerHTML = html;
+}
+
+function renderTrueStats(data) {
+  const ts = data.true_stats;
+  if (!ts || ts.resolved === 0) return;
+
+  const banner = document.createElement('div');
+  banner.className = 'mb-4 bg-amber-900/20 border border-amber-500/30 rounded-lg p-3 text-xs';
+  banner.innerHTML = `<div class="flex items-center gap-2 mb-1">
+    <span>⚠️</span>
+    <span class="font-semibold text-amber-300">True Performance (excluding pre-calibration trades)</span>
+  </div>
+  <div class="text-slate-400">${ts.note}</div>
+  <div class="grid grid-cols-4 gap-3 mt-2">
+    <div class="text-center"><div class="font-bold text-slate-300">${ts.resolved}</div><div class="text-slate-500">${ts.wins}W-${ts.losses}L</div></div>
+    <div class="text-center"><div class="font-bold ${ts.total_pnl >= 0 ? 'text-emerald-400' : 'text-red-400'}">$${fmt(ts.total_pnl)}</div><div class="text-slate-500">True P&L</div></div>
+    <div class="text-center"><div class="font-bold text-slate-300">${ts.win_rate}%</div><div class="text-slate-500">Win Rate</div></div>
+    <div class="text-center"><div class="font-bold ${ts.roi >= 0 ? 'text-emerald-400' : 'text-red-400'}">${ts.roi}%</div><div class="text-slate-500">True ROI</div></div>
+  </div>`;
+
+  const statsRow = document.getElementById('stats-row');
+  if (statsRow) statsRow.parentNode.insertBefore(banner, statsRow.nextSibling);
 }
 
 // Load on page ready

@@ -1,0 +1,86 @@
+<div class="flex items-center gap-2 mb-3">
+  <h3 class="text-sm font-semibold text-purple-300">
+    👻 Shadow Trades
+    <span class="text-xs text-slate-500 font-normal ml-1">(model said "no" — tracking to learn)</span>
+  </h3>
+  {% if shadow_stats.resolved > 0 %}
+  <div class="ml-auto flex items-center gap-3 text-xs">
+    <span class="text-slate-400">{{ shadow_stats.wins }}W – {{ shadow_stats.losses }}L</span>
+    <span class="{% if shadow_stats.total_pnl >= 0 %}text-emerald-400{% else %}text-red-400{% endif %} font-mono">
+      ${{ "%.2f"|format(shadow_stats.total_pnl) }}
+    </span>
+  </div>
+  {% endif %}
+</div>
+
+<div class="bg-purple-900/10 border border-purple-500/20 rounded-lg p-3 mb-3 text-xs text-purple-200/70">
+  <strong>📖 What are shadow trades?</strong> These are trades our model flagged as <em>not meeting the edge threshold</em>
+  (e.g., edge &lt;5%). We track them with fake money to see if we're systematically passing on winners.
+  If shadow trades consistently profit, it may mean our threshold is too strict or our model is undervaluing certain signals.
+</div>
+
+<div class="overflow-x-auto">
+  <table class="w-full text-sm">
+    <thead>
+      <tr class="text-xs text-purple-400/70 uppercase tracking-wider border-b border-purple-700/30">
+        <th class="text-left py-2 pr-3">Date</th>
+        <th class="text-left py-2 pr-3">Team</th>
+        <th class="text-left py-2 pr-3">Dir</th>
+        <th class="text-right py-2 pr-3">Entry</th>
+        <th class="text-right py-2 pr-3">Edge</th>
+        <th class="text-left py-2 pr-3">Skip Reason</th>
+        <th class="text-center py-2 pr-3">Result</th>
+        <th class="text-right py-2">P&L</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for t in shadow_trades %}
+      <tr class="border-b border-purple-700/20 hover:bg-purple-900/20 transition-colors">
+        <td class="py-2 pr-3 text-slate-400">{{ t.date }}</td>
+        <td class="py-2 pr-3 font-medium">
+          <span class="text-xs px-1.5 py-0.5 rounded
+            {% if t.league == 'nba' %}bg-orange-900/30 text-orange-400
+            {% elif t.league == 'nhl' %}bg-blue-900/30 text-blue-400
+            {% elif t.league == 'cbb' %}bg-amber-900/30 text-amber-400
+            {% elif t.league == 'mls' %}bg-green-900/30 text-green-400
+            {% else %}bg-slate-700 text-slate-300{% endif %}
+          ">{% if t.league == 'nba' %}🏀{% elif t.league == 'nhl' %}🏒{% elif t.league == 'cbb' %}🎓{% elif t.league == 'mls' %}⚽{% endif %} {{ t.league|upper }}</span>
+          {{ t.team }}
+        </td>
+        <td class="py-2 pr-3">
+          {% if t.direction == 'YES' %}
+            <span class="text-emerald-400 font-medium">YES</span>
+          {% else %}
+            <span class="text-red-400 font-medium">NO</span>
+          {% endif %}
+        </td>
+        <td class="py-2 pr-3 text-right font-mono">${{ "%.2f"|format(t.entry_price) }}</td>
+        <td class="py-2 pr-3 text-right font-mono text-purple-300">
+          {% if t.edge_vs_poly is defined and t.edge_vs_poly is not none %}{{ "%.1f"|format(t.edge_vs_poly * 100) }}%{% else %}—{% endif %}
+        </td>
+        <td class="py-2 pr-3 text-xs text-slate-500">
+          {% if t.reason_skipped is defined and t.reason_skipped %}{{ t.reason_skipped }}{% else %}Below threshold{% endif %}
+        </td>
+        <td class="py-2 pr-3 text-center">
+          {% if t.outcome == 'WIN' %}
+            <span class="text-xs px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">WIN</span>
+          {% elif t.outcome == 'LOSS' %}
+            <span class="text-xs px-2 py-0.5 rounded-full bg-red-500/20 text-red-400 border border-red-500/30">LOSS</span>
+          {% else %}
+            <span class="text-xs px-2 py-0.5 rounded-full bg-purple-500/20 text-purple-400 border border-purple-500/30">OPEN</span>
+          {% endif %}
+        </td>
+        <td class="py-2 text-right font-mono">
+          {% if t.pnl is not none %}
+            <span class="{% if t.pnl >= 0 %}text-emerald-400{% else %}text-red-400{% endif %}">
+              {{ "$%.2f"|format(t.pnl) }}
+            </span>
+          {% else %}
+            <span class="text-slate-500">—</span>
+          {% endif %}
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>

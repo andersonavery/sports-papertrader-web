@@ -20,7 +20,9 @@
       "closing_price": null,
       "pnl": -10.0,
       "resolved_at": "2026-03-05 13:29:35",
-      "created_at": "2026-03-04T21:24:38.196491"
+      "created_at": "2026-03-04T21:24:38.196491",
+      "data_quality": null,
+      "model_version": "v1"
     },
     {
       "id": "pt-cbb-USC-20260304-03a6e5",
@@ -42,7 +44,9 @@
       "closing_price": null,
       "pnl": -10.0,
       "resolved_at": "2026-03-05 13:29:35",
-      "created_at": "2026-03-04T21:24:38.196491"
+      "created_at": "2026-03-04T21:24:38.196491",
+      "data_quality": null,
+      "model_version": "v1"
     },
     {
       "id": "pt-nba-NYK-20260304-095403-3e75",
@@ -64,7 +68,9 @@
       "closing_price": null,
       "pnl": -10.15457772822888,
       "resolved_at": "2026-03-05 02:18:14",
-      "created_at": "2026-03-04 14:54:03"
+      "created_at": "2026-03-04 14:54:03",
+      "data_quality": null,
+      "model_version": "v1"
     },
     {
       "id": "pt-nba-PHI-20260304-095403-d9b8",
@@ -86,7 +92,9 @@
       "closing_price": null,
       "pnl": 2.720906083589533,
       "resolved_at": "2026-03-05 02:18:14",
-      "created_at": "2026-03-04 14:54:03"
+      "created_at": "2026-03-04 14:54:03",
+      "data_quality": null,
+      "model_version": "v1"
     },
     {
       "id": "pt-nba-MEM-20260304-095403-b6d5",
@@ -108,7 +116,9 @@
       "closing_price": null,
       "pnl": -9.164506399726564,
       "resolved_at": "2026-03-05 02:18:14",
-      "created_at": "2026-03-04 14:54:03"
+      "created_at": "2026-03-04 14:54:03",
+      "data_quality": null,
+      "model_version": "v1"
     },
     {
       "id": "pt-nba-LAC-20260304-095403-6f9a",
@@ -130,7 +140,9 @@
       "closing_price": null,
       "pnl": 1.4765038088448355,
       "resolved_at": "2026-03-05 13:29:35",
-      "created_at": "2026-03-04 14:54:03"
+      "created_at": "2026-03-04 14:54:03",
+      "data_quality": null,
+      "model_version": "v1"
     },
     {
       "id": "59b9efd3",
@@ -152,7 +164,9 @@
       "closing_price": null,
       "pnl": -3.76,
       "resolved_at": "2026-03-05 02:18:14",
-      "created_at": "2026-03-03T22:17:48.001332"
+      "created_at": "2026-03-03T22:17:48.001332",
+      "data_quality": null,
+      "model_version": "v1"
     },
     {
       "id": "pt-nba-CHA-20260303-142522-ea41",
@@ -174,7 +188,9 @@
       "closing_price": null,
       "pnl": 1.4344964402199782,
       "resolved_at": "2026-03-04 14:25:21",
-      "created_at": "2026-03-03 19:25:22"
+      "created_at": "2026-03-03 19:25:22",
+      "data_quality": "fake_poly_price",
+      "model_version": "v1"
     },
     {
       "id": "pt-nba-MIA-20260303-142522-c17c",
@@ -196,7 +212,9 @@
       "closing_price": null,
       "pnl": 1.559426515978181,
       "resolved_at": "2026-03-04 14:25:21",
-      "created_at": "2026-03-03 19:25:22"
+      "created_at": "2026-03-03 19:25:22",
+      "data_quality": "fake_poly_price",
+      "model_version": "v1"
     },
     {
       "id": "pt-nba-MIN-20260303-142522-46b5",
@@ -218,7 +236,9 @@
       "closing_price": null,
       "pnl": 1.9485168730777251,
       "resolved_at": "2026-03-04 14:25:21",
-      "created_at": "2026-03-03 19:25:22"
+      "created_at": "2026-03-03 19:25:22",
+      "data_quality": "fake_poly_price",
+      "model_version": "v1"
     },
     {
       "id": "pt-nba-OKC-20260303-142522-6b2b",
@@ -240,7 +260,9 @@
       "closing_price": null,
       "pnl": 1.9091147353016977,
       "resolved_at": "2026-03-04 14:25:21",
-      "created_at": "2026-03-03 19:25:22"
+      "created_at": "2026-03-03 19:25:22",
+      "data_quality": "fake_poly_price",
+      "model_version": "v1"
     }
   ],
   "stats": {
@@ -255,276 +277,679 @@
     "bankroll": 167.97,
     "starting_bankroll": 200.0
   },
+  "true_stats": {
+    "resolved": 7,
+    "wins": 2,
+    "losses": 5,
+    "total_pnl": -38.88,
+    "win_rate": 28.6,
+    "roi": -63.3,
+    "note": "Excludes 4 pre-calibration trades that used fake $0.50 Polymarket prices"
+  },
+  "model_versions": [
+    {
+      "version_id": "v1",
+      "created_at": "2026-03-05 14:04:56",
+      "description": "Original model \u2014 uncalibrated",
+      "config": "{\"nba\": {\"k_factor\": 20, \"home_advantage\": 100, \"initial_rating\": 1500, \"season_regression\": 0.3333333333333333, \"mov_multiplier\": true}, \"nhl\": {\"k_factor\": 8, \"home_advantage\": 35, \"initial_rating\": 1500, \"season_regression\": 0.3333333333333333, \"mov_multiplier\": true}, \"cbb\": {\"k_factor\": 15, \"home_advantage\": 80, \"initial_rating\": 1500, \"season_regression\": 0.5, \"mov_multiplier\": true}, \"mls\": {\"k_factor\": 25, \"home_advantage\": 100, \"initial_rating\": 1500, \"season_regression\": 0.25, \"mov_multiplier\": false}}",
+      "parent_version": null,
+      "changelog": "Initial config",
+      "is_active": 0
+    },
+    {
+      "version_id": "v2",
+      "created_at": "2026-03-05 14:05:18",
+      "description": "Corrected NBA home advantage (100 \u2192 26.5)",
+      "config": "{\"nba\": {\"k_factor\": 20, \"home_advantage\": 26.5, \"initial_rating\": 1500, \"season_regression\": 0.3333333333333333, \"mov_multiplier\": true}, \"nhl\": {\"k_factor\": 8, \"home_advantage\": 35, \"initial_rating\": 1500, \"season_regression\": 0.3333333333333333, \"mov_multiplier\": true}, \"cbb\": {\"k_factor\": 15, \"home_advantage\": 80, \"initial_rating\": 1500, \"season_regression\": 0.5, \"mov_multiplier\": true}, \"mls\": {\"k_factor\": 25, \"home_advantage\": 100, \"initial_rating\": 1500, \"season_regression\": 0.25, \"mov_multiplier\": false}}",
+      "parent_version": "v1",
+      "changelog": "NBA home_advantage: 100 \u2192 26.5 (derived from 53.8% actual home win rate in 2,156 games). NHL/CBB/MLS unchanged.",
+      "is_active": 1
+    }
+  ],
+  "version_comparison": [
+    {
+      "version_id": "v1",
+      "description": "Original model \u2014 uncalibrated",
+      "trades_taken": 11,
+      "trades_skipped": 0,
+      "wins": 6,
+      "losses": 5,
+      "total_pnl": -32.03
+    },
+    {
+      "version_id": "v2",
+      "description": "Corrected NBA home advantage (100 \u2192 26.5)",
+      "trades_taken": 5,
+      "trades_skipped": 6,
+      "wins": 4,
+      "losses": 1,
+      "total_pnl": 27.94
+    }
+  ],
+  "retrospectives": [
+    {
+      "trade_id": "pt-nba-CHA-20260303-142522-ea41",
+      "model_version": "v1",
+      "elo_probability": 0.9245466013549801,
+      "edge_vs_poly": 0.4245466013549801,
+      "would_trade": 1,
+      "would_pnl": 1.4344964402199782,
+      "date": "2026-03-03",
+      "team": "CHA",
+      "direction": "NO",
+      "league": "nba",
+      "outcome": "WIN",
+      "polymarket_price": 0.5,
+      "actual_pnl": 1.4344964402199782,
+      "data_quality": "fake_poly_price"
+    },
+    {
+      "trade_id": "pt-nba-MIA-20260303-142522-c17c",
+      "model_version": "v1",
+      "elo_probability": 0.9089957161227855,
+      "edge_vs_poly": 0.4089957161227855,
+      "would_trade": 1,
+      "would_pnl": 1.559426515978181,
+      "date": "2026-03-03",
+      "team": "MIA",
+      "direction": "NO",
+      "league": "nba",
+      "outcome": "WIN",
+      "polymarket_price": 0.5,
+      "actual_pnl": 1.559426515978181,
+      "data_quality": "fake_poly_price"
+    },
+    {
+      "trade_id": "pt-nba-MIN-20260303-142522-46b5",
+      "model_version": "v1",
+      "elo_probability": 0.8724346036357598,
+      "edge_vs_poly": 0.37243460363575975,
+      "would_trade": 1,
+      "would_pnl": 1.9485168730777251,
+      "date": "2026-03-03",
+      "team": "MIN",
+      "direction": "NO",
+      "league": "nba",
+      "outcome": "WIN",
+      "polymarket_price": 0.5,
+      "actual_pnl": 1.9485168730777251,
+      "data_quality": "fake_poly_price"
+    },
+    {
+      "trade_id": "pt-nba-OKC-20260303-142522-6b2b",
+      "model_version": "v1",
+      "elo_probability": 0.8678823457606359,
+      "edge_vs_poly": 0.36788234576063594,
+      "would_trade": 1,
+      "would_pnl": 1.9091147353016977,
+      "date": "2026-03-03",
+      "team": "OKC",
+      "direction": "YES",
+      "league": "nba",
+      "outcome": "WIN",
+      "polymarket_price": 0.5,
+      "actual_pnl": 1.9091147353016977,
+      "data_quality": "fake_poly_price"
+    },
+    {
+      "trade_id": "pt-nba-CHA-20260303-142522-ea41",
+      "model_version": "v2",
+      "elo_probability": 0.911,
+      "edge_vs_poly": 0.411,
+      "would_trade": 1,
+      "would_pnl": 10.0,
+      "date": "2026-03-03",
+      "team": "CHA",
+      "direction": "NO",
+      "league": "nba",
+      "outcome": "WIN",
+      "polymarket_price": 0.5,
+      "actual_pnl": 1.4344964402199782,
+      "data_quality": "fake_poly_price"
+    },
+    {
+      "trade_id": "pt-nba-MIA-20260303-142522-c17c",
+      "model_version": "v2",
+      "elo_probability": 0.8631,
+      "edge_vs_poly": 0.3631,
+      "would_trade": 1,
+      "would_pnl": 9.5,
+      "date": "2026-03-03",
+      "team": "MIA",
+      "direction": "NO",
+      "league": "nba",
+      "outcome": "WIN",
+      "polymarket_price": 0.5,
+      "actual_pnl": 1.559426515978181,
+      "data_quality": "fake_poly_price"
+    },
+    {
+      "trade_id": "pt-nba-MIN-20260303-142522-46b5",
+      "model_version": "v2",
+      "elo_probability": 0.8473,
+      "edge_vs_poly": 0.3473,
+      "would_trade": 1,
+      "would_pnl": 9.03,
+      "date": "2026-03-03",
+      "team": "MIN",
+      "direction": "NO",
+      "league": "nba",
+      "outcome": "WIN",
+      "polymarket_price": 0.5,
+      "actual_pnl": 1.9485168730777251,
+      "data_quality": "fake_poly_price"
+    },
+    {
+      "trade_id": "pt-nba-OKC-20260303-142522-6b2b",
+      "model_version": "v2",
+      "elo_probability": 0.8974,
+      "edge_vs_poly": 0.3974,
+      "would_trade": 1,
+      "would_pnl": 8.57,
+      "date": "2026-03-03",
+      "team": "OKC",
+      "direction": "YES",
+      "league": "nba",
+      "outcome": "WIN",
+      "polymarket_price": 0.5,
+      "actual_pnl": 1.9091147353016977,
+      "data_quality": "fake_poly_price"
+    },
+    {
+      "trade_id": "59b9efd3",
+      "model_version": "v1",
+      "elo_probability": 0.301,
+      "edge_vs_poly": 0.071,
+      "would_trade": 1,
+      "would_pnl": -3.76,
+      "date": "2026-03-03",
+      "team": "SAC",
+      "direction": "NO",
+      "league": "nba",
+      "outcome": "LOSS",
+      "polymarket_price": 0.23,
+      "actual_pnl": -3.76,
+      "data_quality": null
+    },
+    {
+      "trade_id": "59b9efd3",
+      "model_version": "v2",
+      "elo_probability": 0.2132,
+      "edge_vs_poly": -0.0168,
+      "would_trade": 0,
+      "would_pnl": 0.0,
+      "date": "2026-03-03",
+      "team": "SAC",
+      "direction": "NO",
+      "league": "nba",
+      "outcome": "LOSS",
+      "polymarket_price": 0.23,
+      "actual_pnl": -3.76,
+      "data_quality": null
+    },
+    {
+      "trade_id": "pt-nba-LAC-20260304-095403-6f9a",
+      "model_version": "v1",
+      "elo_probability": 0.936,
+      "edge_vs_poly": 0.08100000000000007,
+      "would_trade": 1,
+      "would_pnl": 1.4765038088448355,
+      "date": "2026-03-04",
+      "team": "LAC",
+      "direction": "NO",
+      "league": "nba",
+      "outcome": "WIN",
+      "polymarket_price": 0.855,
+      "actual_pnl": 1.4765038088448355,
+      "data_quality": null
+    },
+    {
+      "trade_id": "pt-nba-MEM-20260304-095403-b6d5",
+      "model_version": "v1",
+      "elo_probability": 0.517,
+      "edge_vs_poly": 0.272,
+      "would_trade": 1,
+      "would_pnl": -9.164506399726564,
+      "date": "2026-03-04",
+      "team": "MEM",
+      "direction": "NO",
+      "league": "nba",
+      "outcome": "LOSS",
+      "polymarket_price": 0.245,
+      "actual_pnl": -9.164506399726564,
+      "data_quality": null
+    },
+    {
+      "trade_id": "pt-nba-NYK-20260304-095403-3e75",
+      "model_version": "v1",
+      "elo_probability": 0.588,
+      "edge_vs_poly": 0.20299999999999996,
+      "would_trade": 1,
+      "would_pnl": -10.15457772822888,
+      "date": "2026-03-04",
+      "team": "NYK",
+      "direction": "NO",
+      "league": "nba",
+      "outcome": "LOSS",
+      "polymarket_price": 0.385,
+      "actual_pnl": -10.15457772822888,
+      "data_quality": null
+    },
+    {
+      "trade_id": "pt-nba-PHI-20260304-095403-d9b8",
+      "model_version": "v1",
+      "elo_probability": 0.901,
+      "edge_vs_poly": 0.121,
+      "would_trade": 1,
+      "would_pnl": 2.720906083589533,
+      "date": "2026-03-04",
+      "team": "PHI",
+      "direction": "NO",
+      "league": "nba",
+      "outcome": "WIN",
+      "polymarket_price": 0.78,
+      "actual_pnl": 2.720906083589533,
+      "data_quality": null
+    },
+    {
+      "trade_id": "pt-nba-LAC-20260304-095403-6f9a",
+      "model_version": "v2",
+      "elo_probability": 0.9006,
+      "edge_vs_poly": 0.0456,
+      "would_trade": 0,
+      "would_pnl": 0.0,
+      "date": "2026-03-04",
+      "team": "LAC",
+      "direction": "NO",
+      "league": "nba",
+      "outcome": "WIN",
+      "polymarket_price": 0.855,
+      "actual_pnl": 1.4765038088448355,
+      "data_quality": null
+    },
+    {
+      "trade_id": "pt-nba-MEM-20260304-095403-b6d5",
+      "model_version": "v2",
+      "elo_probability": 0.3598,
+      "edge_vs_poly": 0.1148,
+      "would_trade": 1,
+      "would_pnl": -9.16,
+      "date": "2026-03-04",
+      "team": "MEM",
+      "direction": "NO",
+      "league": "nba",
+      "outcome": "LOSS",
+      "polymarket_price": 0.245,
+      "actual_pnl": -9.164506399726564,
+      "data_quality": null
+    },
+    {
+      "trade_id": "pt-nba-NYK-20260304-095403-3e75",
+      "model_version": "v2",
+      "elo_probability": 0.2284,
+      "edge_vs_poly": -0.1566,
+      "would_trade": 0,
+      "would_pnl": 0.0,
+      "date": "2026-03-04",
+      "team": "NYK",
+      "direction": "NO",
+      "league": "nba",
+      "outcome": "LOSS",
+      "polymarket_price": 0.385,
+      "actual_pnl": -10.15457772822888,
+      "data_quality": null
+    },
+    {
+      "trade_id": "pt-nba-PHI-20260304-095403-d9b8",
+      "model_version": "v2",
+      "elo_probability": 0.8445,
+      "edge_vs_poly": 0.0645,
+      "would_trade": 0,
+      "would_pnl": 0.0,
+      "date": "2026-03-04",
+      "team": "PHI",
+      "direction": "NO",
+      "league": "nba",
+      "outcome": "WIN",
+      "polymarket_price": 0.78,
+      "actual_pnl": 2.720906083589533,
+      "data_quality": null
+    },
+    {
+      "trade_id": "pt-cbb-USC-20260304-03a6e5",
+      "model_version": "v1",
+      "elo_probability": 0.404,
+      "edge_vs_poly": 0.07400000000000001,
+      "would_trade": 1,
+      "would_pnl": -10.0,
+      "date": "2026-03-04",
+      "team": "USC",
+      "direction": "YES",
+      "league": "cbb",
+      "outcome": "LOSS",
+      "polymarket_price": 0.33,
+      "actual_pnl": -10.0,
+      "data_quality": null
+    },
+    {
+      "trade_id": "pt-nhl-VAN-20260304-3342d6",
+      "model_version": "v1",
+      "elo_probability": 0.39,
+      "edge_vs_poly": 0.12,
+      "would_trade": 1,
+      "would_pnl": -10.0,
+      "date": "2026-03-04",
+      "team": "VAN",
+      "direction": "NO",
+      "league": "nhl",
+      "outcome": "LOSS",
+      "polymarket_price": 0.27,
+      "actual_pnl": -10.0,
+      "data_quality": null
+    },
+    {
+      "trade_id": "pt-cbb-USC-20260304-03a6e5",
+      "model_version": "v2",
+      "elo_probability": 0.356,
+      "edge_vs_poly": 0.026,
+      "would_trade": 0,
+      "would_pnl": 0.0,
+      "date": "2026-03-04",
+      "team": "USC",
+      "direction": "YES",
+      "league": "cbb",
+      "outcome": "LOSS",
+      "polymarket_price": 0.33,
+      "actual_pnl": -10.0,
+      "data_quality": null
+    },
+    {
+      "trade_id": "pt-nhl-VAN-20260304-3342d6",
+      "model_version": "v2",
+      "elo_probability": 0.327,
+      "edge_vs_poly": 0.057,
+      "would_trade": 0,
+      "would_pnl": 0.0,
+      "date": "2026-03-04",
+      "team": "VAN",
+      "direction": "NO",
+      "league": "nhl",
+      "outcome": "LOSS",
+      "polymarket_price": 0.27,
+      "actual_pnl": -10.0,
+      "data_quality": null
+    }
+  ],
   "nba_ratings": [
     {
       "team": "SAS",
       "league": "nba",
-      "rating": 1785.3,
-      "games_played": 61,
-      "wins": 44,
-      "losses": 17,
-      "updated_at": "2026-03-05 02:17:05"
+      "rating": 1750.5,
+      "games_played": 142,
+      "wins": 77,
+      "losses": 65,
+      "updated_at": "2026-03-05 14:06:01"
     },
     {
       "team": "OKC",
       "league": "nba",
-      "rating": 1760.0,
-      "games_played": 64,
-      "wins": 49,
-      "losses": 15,
-      "updated_at": "2026-03-05 02:17:05"
+      "rating": 1738.0,
+      "games_played": 147,
+      "wins": 117,
+      "losses": 30,
+      "updated_at": "2026-03-05 14:06:01"
     },
     {
       "team": "DET",
       "league": "nba",
-      "rating": 1741.4,
-      "games_played": 60,
-      "wins": 45,
-      "losses": 15,
-      "updated_at": "2026-03-05 02:17:05"
-    },
-    {
-      "team": "CHA",
-      "league": "nba",
-      "rating": 1708.0,
-      "games_played": 63,
-      "wins": 32,
-      "losses": 31,
-      "updated_at": "2026-03-05 02:17:05"
+      "rating": 1735.8,
+      "games_played": 142,
+      "wins": 89,
+      "losses": 53,
+      "updated_at": "2026-03-05 14:06:01"
     },
     {
       "team": "CLE",
       "league": "nba",
-      "rating": 1705.9,
-      "games_played": 63,
-      "wins": 39,
-      "losses": 24,
-      "updated_at": "2026-03-05 02:17:05"
+      "rating": 1696.8,
+      "games_played": 145,
+      "wins": 103,
+      "losses": 42,
+      "updated_at": "2026-03-05 14:06:01"
+    },
+    {
+      "team": "CHA",
+      "league": "nba",
+      "rating": 1694.4,
+      "games_played": 145,
+      "wins": 51,
+      "losses": 94,
+      "updated_at": "2026-03-05 14:06:01"
     },
     {
       "team": "NYK",
       "league": "nba",
-      "rating": 1697.4,
-      "games_played": 63,
-      "wins": 40,
-      "losses": 23,
-      "updated_at": "2026-03-05 02:17:05"
+      "rating": 1683.1,
+      "games_played": 145,
+      "wins": 91,
+      "losses": 54,
+      "updated_at": "2026-03-05 14:06:01"
     },
     {
       "team": "BOS",
       "league": "nba",
-      "rating": 1676.7,
-      "games_played": 62,
-      "wins": 41,
-      "losses": 21,
-      "updated_at": "2026-03-05 02:17:05"
-    },
-    {
-      "team": "HOU",
-      "league": "nba",
-      "rating": 1613.6,
-      "games_played": 60,
-      "wins": 38,
-      "losses": 22,
-      "updated_at": "2026-03-05 02:17:05"
+      "rating": 1664.4,
+      "games_played": 144,
+      "wins": 102,
+      "losses": 42,
+      "updated_at": "2026-03-05 14:06:01"
     },
     {
       "team": "MIN",
       "league": "nba",
-      "rating": 1609.3,
-      "games_played": 62,
-      "wins": 39,
-      "losses": 23,
-      "updated_at": "2026-03-05 02:17:05"
+      "rating": 1620.7,
+      "games_played": 144,
+      "wins": 88,
+      "losses": 56,
+      "updated_at": "2026-03-05 14:06:01"
+    },
+    {
+      "team": "HOU",
+      "league": "nba",
+      "rating": 1612.0,
+      "games_played": 141,
+      "wins": 90,
+      "losses": 51,
+      "updated_at": "2026-03-05 14:06:01"
     },
     {
       "team": "LAC",
       "league": "nba",
-      "rating": 1574.4,
-      "games_played": 60,
-      "wins": 29,
-      "losses": 31,
-      "updated_at": "2026-03-05 02:17:05"
-    },
-    {
-      "team": "DEN",
-      "league": "nba",
-      "rating": 1568.5,
-      "games_played": 62,
-      "wins": 38,
-      "losses": 24,
-      "updated_at": "2026-03-05 02:17:05"
+      "rating": 1581.9,
+      "games_played": 143,
+      "wins": 80,
+      "losses": 63,
+      "updated_at": "2026-03-05 14:06:01"
     },
     {
       "team": "LAL",
       "league": "nba",
-      "rating": 1554.1,
-      "games_played": 61,
-      "wins": 37,
-      "losses": 24,
-      "updated_at": "2026-03-05 02:17:05"
+      "rating": 1565.7,
+      "games_played": 143,
+      "wins": 87,
+      "losses": 56,
+      "updated_at": "2026-03-05 14:06:01"
     },
     {
-      "team": "MIA",
+      "team": "DEN",
       "league": "nba",
-      "rating": 1551.9,
-      "games_played": 62,
-      "wins": 33,
-      "losses": 29,
-      "updated_at": "2026-03-05 02:17:05"
-    },
-    {
-      "team": "TOR",
-      "league": "nba",
-      "rating": 1524.1,
-      "games_played": 61,
-      "wins": 35,
-      "losses": 26,
-      "updated_at": "2026-03-05 02:17:05"
-    },
-    {
-      "team": "PHI",
-      "league": "nba",
-      "rating": 1522.4,
-      "games_played": 62,
-      "wins": 34,
-      "losses": 28,
-      "updated_at": "2026-03-05 02:17:05"
-    },
-    {
-      "team": "PHX",
-      "league": "nba",
-      "rating": 1515.7,
-      "games_played": 61,
-      "wins": 35,
-      "losses": 26,
-      "updated_at": "2026-03-05 02:17:05"
+      "rating": 1565.5,
+      "games_played": 144,
+      "wins": 88,
+      "losses": 56,
+      "updated_at": "2026-03-05 14:06:01"
     },
     {
       "team": "ATL",
       "league": "nba",
-      "rating": 1511.6,
-      "games_played": 62,
-      "wins": 31,
-      "losses": 31,
-      "updated_at": "2026-03-05 02:17:05"
+      "rating": 1548.7,
+      "games_played": 144,
+      "wins": 72,
+      "losses": 72,
+      "updated_at": "2026-03-05 14:06:01"
     },
     {
-      "team": "POR",
+      "team": "MIA",
       "league": "nba",
-      "rating": 1476.4,
-      "games_played": 63,
-      "wins": 30,
-      "losses": 33,
-      "updated_at": "2026-03-05 02:17:05"
+      "rating": 1539.2,
+      "games_played": 144,
+      "wins": 70,
+      "losses": 74,
+      "updated_at": "2026-03-05 14:06:01"
+    },
+    {
+      "team": "TOR",
+      "league": "nba",
+      "rating": 1533.3,
+      "games_played": 143,
+      "wins": 65,
+      "losses": 78,
+      "updated_at": "2026-03-05 14:06:01"
+    },
+    {
+      "team": "PHX",
+      "league": "nba",
+      "rating": 1528.0,
+      "games_played": 143,
+      "wins": 71,
+      "losses": 72,
+      "updated_at": "2026-03-05 14:06:01"
+    },
+    {
+      "team": "PHI",
+      "league": "nba",
+      "rating": 1510.6,
+      "games_played": 144,
+      "wins": 58,
+      "losses": 86,
+      "updated_at": "2026-03-05 14:06:01"
     },
     {
       "team": "ORL",
       "league": "nba",
-      "rating": 1473.1,
-      "games_played": 59,
-      "wins": 32,
-      "losses": 27,
-      "updated_at": "2026-03-05 02:17:05"
+      "rating": 1478.4,
+      "games_played": 142,
+      "wins": 73,
+      "losses": 69,
+      "updated_at": "2026-03-05 14:06:01"
+    },
+    {
+      "team": "POR",
+      "league": "nba",
+      "rating": 1476.2,
+      "games_played": 145,
+      "wins": 66,
+      "losses": 79,
+      "updated_at": "2026-03-05 14:06:01"
     },
     {
       "team": "GSW",
       "league": "nba",
-      "rating": 1443.1,
-      "games_played": 61,
-      "wins": 31,
-      "losses": 30,
-      "updated_at": "2026-03-05 02:17:05"
+      "rating": 1463.6,
+      "games_played": 143,
+      "wins": 79,
+      "losses": 64,
+      "updated_at": "2026-03-05 14:06:01"
     },
     {
       "team": "MIL",
       "league": "nba",
-      "rating": 1415.8,
-      "games_played": 60,
-      "wins": 26,
-      "losses": 34,
-      "updated_at": "2026-03-05 02:17:05"
+      "rating": 1398.9,
+      "games_played": 144,
+      "wins": 74,
+      "losses": 70,
+      "updated_at": "2026-03-05 14:06:01"
     },
     {
       "team": "NOP",
       "league": "nba",
-      "rating": 1398.1,
-      "games_played": 63,
-      "wins": 19,
-      "losses": 44,
-      "updated_at": "2026-03-05 02:17:05"
+      "rating": 1392.9,
+      "games_played": 145,
+      "wins": 40,
+      "losses": 105,
+      "updated_at": "2026-03-05 14:06:01"
     },
     {
       "team": "MEM",
       "league": "nba",
-      "rating": 1348.2,
-      "games_played": 62,
-      "wins": 23,
-      "losses": 39,
-      "updated_at": "2026-03-05 02:17:05"
-    },
-    {
-      "team": "DAL",
-      "league": "nba",
-      "rating": 1317.1,
-      "games_played": 61,
-      "wins": 21,
-      "losses": 40,
-      "updated_at": "2026-03-05 02:17:05"
+      "rating": 1349.5,
+      "games_played": 143,
+      "wins": 71,
+      "losses": 72,
+      "updated_at": "2026-03-05 14:06:01"
     },
     {
       "team": "CHI",
       "league": "nba",
-      "rating": 1313.9,
-      "games_played": 62,
-      "wins": 25,
-      "losses": 37,
-      "updated_at": "2026-03-05 02:17:05"
+      "rating": 1334.9,
+      "games_played": 144,
+      "wins": 64,
+      "losses": 80,
+      "updated_at": "2026-03-05 14:06:01"
+    },
+    {
+      "team": "DAL",
+      "league": "nba",
+      "rating": 1316.8,
+      "games_played": 143,
+      "wins": 60,
+      "losses": 83,
+      "updated_at": "2026-03-05 14:06:01"
     },
     {
       "team": "WAS",
       "league": "nba",
-      "rating": 1254.5,
-      "games_played": 61,
-      "wins": 16,
-      "losses": 45,
-      "updated_at": "2026-03-05 02:17:05"
-    },
-    {
-      "team": "BKN",
-      "league": "nba",
-      "rating": 1253.0,
-      "games_played": 61,
-      "wins": 15,
-      "losses": 46,
-      "updated_at": "2026-03-05 02:17:05"
+      "rating": 1258.9,
+      "games_played": 143,
+      "wins": 34,
+      "losses": 109,
+      "updated_at": "2026-03-05 14:06:01"
     },
     {
       "team": "SAC",
       "league": "nba",
-      "rating": 1240.9,
-      "games_played": 63,
-      "wins": 14,
-      "losses": 49,
-      "updated_at": "2026-03-05 02:17:05"
+      "rating": 1246.6,
+      "games_played": 145,
+      "wins": 54,
+      "losses": 91,
+      "updated_at": "2026-03-05 14:06:01"
+    },
+    {
+      "team": "BKN",
+      "league": "nba",
+      "rating": 1245.9,
+      "games_played": 143,
+      "wins": 41,
+      "losses": 102,
+      "updated_at": "2026-03-05 14:06:01"
     },
     {
       "team": "UTA",
       "league": "nba",
-      "rating": 1228.6,
-      "games_played": 62,
-      "wins": 18,
-      "losses": 44,
-      "updated_at": "2026-03-05 02:17:05"
+      "rating": 1243.2,
+      "games_played": 144,
+      "wins": 35,
+      "losses": 109,
+      "updated_at": "2026-03-05 14:06:01"
     },
     {
       "team": "IND",
       "league": "nba",
-      "rating": 1217.1,
-      "games_played": 61,
-      "wins": 15,
-      "losses": 46,
-      "updated_at": "2026-03-05 02:17:05"
+      "rating": 1225.5,
+      "games_played": 145,
+      "wins": 66,
+      "losses": 79,
+      "updated_at": "2026-03-05 14:06:01"
     }
   ],
   "nhl_ratings": [
@@ -7727,7 +8152,8 @@
       "outcome": "WIN",
       "pnl": 13.809523809523812,
       "resolved_at": "2026-03-05 13:29:35",
-      "created_at": "2026-03-04T21:24:38.196491"
+      "created_at": "2026-03-04T21:24:38.196491",
+      "data_quality": "inconsistent_edge_reason"
     },
     {
       "id": "sh-nba-ATL-20260304-91ec41",
@@ -7747,7 +8173,8 @@
       "outcome": "LOSS",
       "pnl": -10.0,
       "resolved_at": "2026-03-05 13:29:35",
-      "created_at": "2026-03-04T21:24:38.196491"
+      "created_at": "2026-03-04T21:24:38.196491",
+      "data_quality": "inconsistent_team_direction"
     },
     {
       "id": "sh-nhl-NYI-20260304-a55d16",
@@ -7767,7 +8194,8 @@
       "outcome": "LOSS",
       "pnl": -10.0,
       "resolved_at": "2026-03-05 13:29:35",
-      "created_at": "2026-03-04T21:24:38.196491"
+      "created_at": "2026-03-04T21:24:38.196491",
+      "data_quality": null
     },
     {
       "id": "sh-nba-BOS-20260304-095403-ce0c",
@@ -7787,7 +8215,8 @@
       "outcome": "LOSS",
       "pnl": -10.0,
       "resolved_at": "2026-03-05 02:18:14",
-      "created_at": "2026-03-04 14:54:03"
+      "created_at": "2026-03-04 14:54:03",
+      "data_quality": null
     },
     {
       "id": "sh-nba-ATL-20260304-095403-d342",
@@ -7807,7 +8236,8 @@
       "outcome": "WIN",
       "pnl": 11.505376344086018,
       "resolved_at": "2026-03-05 13:29:35",
-      "created_at": "2026-03-04 14:54:03"
+      "created_at": "2026-03-04 14:54:03",
+      "data_quality": null
     },
     {
       "id": "sh-nhl-VAN-20260304-095403-9556",
@@ -7827,7 +8257,8 @@
       "outcome": "LOSS",
       "pnl": -10.0,
       "resolved_at": "2026-03-05 13:29:35",
-      "created_at": "2026-03-04 14:54:03"
+      "created_at": "2026-03-04 14:54:03",
+      "data_quality": null
     },
     {
       "id": "sh-nhl-NJ-20260304-095403-e131",
@@ -7847,7 +8278,8 @@
       "outcome": "WIN",
       "pnl": 9.047619047619047,
       "resolved_at": "2026-03-05 13:29:35",
-      "created_at": "2026-03-04 14:54:03"
+      "created_at": "2026-03-04 14:54:03",
+      "data_quality": null
     }
   ],
   "shadow_stats": {
@@ -7859,5 +8291,5 @@
     "total_pnl": -5.64,
     "win_rate": 42.9
   },
-  "last_updated": "2026-03-05T13:33:45.342906+00:00"
+  "last_updated": "2026-03-05T14:09:00.977059+00:00"
 }

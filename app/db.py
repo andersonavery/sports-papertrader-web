@@ -29,6 +29,53 @@ def get_open_trades():
     return [dict(r) for r in rows]
 
 
+def get_shadow_trades(limit=30):
+    conn = get_conn()
+    try:
+        rows = conn.execute(
+            "SELECT * FROM shadow_trades ORDER BY date DESC, created_at DESC LIMIT ?",
+            (limit,),
+        ).fetchall()
+    except Exception:
+        return []
+    finally:
+        conn.close()
+    return [dict(r) for r in rows]
+
+
+def get_shadow_stats():
+    conn = get_conn()
+    try:
+        resolved = conn.execute(
+            "SELECT COUNT(*) as c FROM shadow_trades WHERE outcome IS NOT NULL"
+        ).fetchone()["c"]
+        wins = conn.execute(
+            "SELECT COUNT(*) as c FROM shadow_trades WHERE outcome = 'WIN'"
+        ).fetchone()["c"]
+        losses = conn.execute(
+            "SELECT COUNT(*) as c FROM shadow_trades WHERE outcome = 'LOSS'"
+        ).fetchone()["c"]
+        open_count = conn.execute(
+            "SELECT COUNT(*) as c FROM shadow_trades WHERE outcome IS NULL"
+        ).fetchone()["c"]
+        total_pnl = conn.execute(
+            "SELECT COALESCE(SUM(pnl), 0) as s FROM shadow_trades WHERE outcome IS NOT NULL"
+        ).fetchone()["s"]
+    except Exception:
+        return {"resolved": 0, "wins": 0, "losses": 0, "open": 0, "total_pnl": 0, "win_rate": 0}
+    finally:
+        conn.close()
+
+    return {
+        "resolved": resolved,
+        "wins": wins,
+        "losses": losses,
+        "open": open_count,
+        "total_pnl": round(total_pnl, 2),
+        "win_rate": round(wins / resolved * 100, 1) if resolved > 0 else 0,
+    }
+
+
 def get_elo_ratings(league):
     conn = get_conn()
     rows = conn.execute(
