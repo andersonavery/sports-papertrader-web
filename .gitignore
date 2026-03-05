@@ -5,4 +5,4 @@ __pycache__/
 dist/
 *.egg-info/
 # Allow the paper trades DB in data/
-# data/paper_trades.db is a symlink to skill DB — not tracked
+!data/paper_trades.db

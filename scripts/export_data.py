@@ -9,8 +9,10 @@ from pathlib import Path
 
 VIRTUAL_BANKROLL = 200.0
 
-# Default DB location
-DEFAULT_DB = Path("~/.copilot/skills/polymarket-api/paper_trades.db").expanduser()
+# DB locations — try local data/ first (works in CI), fallback to skill DB
+LOCAL_DB = Path(__file__).resolve().parent.parent / "data" / "paper_trades.db"
+SKILL_DB = Path("~/.copilot/skills/polymarket-api/paper_trades.db").expanduser()
+DEFAULT_DB = LOCAL_DB if LOCAL_DB.exists() else SKILL_DB
 OUTPUT_DIR = Path(__file__).resolve().parent.parent / "docs" / "data"
 
 
