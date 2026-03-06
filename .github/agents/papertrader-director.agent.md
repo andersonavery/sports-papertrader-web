@@ -173,6 +173,17 @@ When you create a PR, you own it through to merge. Do not consider your work don
 - Maintain backward compatibility with the CLI paper trading system at `~/.copilot/skills/polymarket-api/`
 
 
+
+## Git Discipline
+
+- **One branch per concern** — never mix unrelated changes on a feature branch. If you discover something unrelated that needs fixing, open a separate issue and branch.
+- **Branch from latest main** — always `git fetch origin main && git checkout -b <branch> origin/main`
+- **Branch naming** — `<type>/<short-description>` (e.g., `feat/bid-flow`, `fix/auth-bypass`, `chore/update-agents`)
+- **Issue linkage** — every PR body must reference the issue(s) it addresses (`Fixes #N` or `Refs #N`)
+- **Delete branch on merge** — always use `--delete-branch` flag
+- **Close issues** — verify issues auto-closed via `Fixes #N`; if using `Refs #N`, close manually after merge
+- **No unrelated changes** — if a file is not part of the dispatched task, do not modify it
+
 ## PR Review Comment Protocol
 
 Resolve each review thread **immediately after addressing it** — never batch at the end.
