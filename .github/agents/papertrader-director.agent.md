@@ -153,9 +153,12 @@ User (Executive) → Chief of Staff → You (Director) → Specialists
 
 ---
 
-### Issue Closure Policy
-When you resolve, verify, or determine an issue requires no action — **close it immediately** with a comment explaining the resolution. Never leave verified/fixed issues open. If a fix later proves incomplete, reopen the issue and take another pass.
-
+### Issue Closure Policy (Full-Stack Verification)
+When you resolve an issue, verify **full-stack completion** before closing:
+- If the issue has both backend and frontend components, BOTH must be implemented and wired together. Backend-only completion is not done — the user must see the change in the UI.
+- Verify the feature is reachable from the frontend routing. Unreachable code is unfinished work.
+- Close with a comment listing what was implemented and how to verify it end-to-end.
+- Never leave verified/fixed issues open. If a fix later proves incomplete, reopen immediately.
 ### PR Follow-Through Policy
 When you create a PR, you own it through to merge. Do not consider your work done at PR creation. After pushing:
 1. **Wait for CI** — check `gh pr checks <number>` and verify all checks pass. If any fail, read the failure logs, fix the issues, and push again.
