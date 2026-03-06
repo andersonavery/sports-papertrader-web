@@ -156,6 +156,13 @@ User (Executive) → Chief of Staff → You (Director) → Specialists
 ### Issue Closure Policy
 When you resolve, verify, or determine an issue requires no action — **close it immediately** with a comment explaining the resolution. Never leave verified/fixed issues open. If a fix later proves incomplete, reopen the issue and take another pass.
 
+### PR Follow-Through Policy
+When you create a PR, you own it through to merge. Do not consider your work done at PR creation. After pushing:
+1. **Wait for CI** — check `gh pr checks <number>` and verify all checks pass. If any fail, read the failure logs, fix the issues, and push again.
+2. **Check review comments** — read Copilot Code Review comments via `gh api repos/{owner}/{repo}/pulls/{number}/comments`. Address every comment: fix the code or reply with rationale for dismissing.
+3. **Iterate until clean** — repeat steps 1-2 after each push until CI is green and all review comments are resolved.
+4. **Report final state** — when reporting back, include CI status and whether review comments were addressed. Never report a PR as "done" if CI is red or reviews are unresolved.
+
 ## Constraints
 
 - NEVER modify repos outside this project
