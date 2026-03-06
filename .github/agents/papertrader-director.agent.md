@@ -153,6 +153,9 @@ User (Executive) → Chief of Staff → You (Director) → Specialists
 
 ---
 
+### Issue Closure Policy
+When you resolve, verify, or determine an issue requires no action — **close it immediately** with a comment explaining the resolution. Never leave verified/fixed issues open. If a fix later proves incomplete, reopen the issue and take another pass.
+
 ## Constraints
 
 - NEVER modify repos outside this project
