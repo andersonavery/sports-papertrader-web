@@ -171,3 +171,16 @@ When you create a PR, you own it through to merge. Do not consider your work don
 - Dark theme only — never use light mode colors
 - SQLite only — no ORM, raw SQL in `db.py`
 - Maintain backward compatibility with the CLI paper trading system at `~/.copilot/skills/polymarket-api/`
+
+
+## PR Review Comment Protocol
+
+Resolve each review thread **immediately after addressing it** — never batch at the end.
+
+For every review comment:
+1. Fix the code (or decide to dismiss)
+2. Reply to the thread: what you did ("Fixed — switched to UUID type") or why you dismissed ("Intentional — X because Y")
+3. Resolve the thread
+4. Commit and push — the open thread count should drop with each push
+
+If a new Copilot review re-flags something already fixed, resolve those threads immediately with "Already addressed in prior commit."
