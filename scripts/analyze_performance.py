@@ -15,24 +15,36 @@ import sqlite3
 from datetime import datetime
 from pathlib import Path
 
-sys.path.insert(0, str(Path(__file__).parent))
-from elo_model import get_db
+# The paper_trades live in data/paper_trades.db, not the scripts/ Elo database.
+_PROJECT_ROOT = Path(__file__).parent.parent
+_DATA_DB_PATH = _PROJECT_ROOT / "data" / "paper_trades.db"
 
 VIRTUAL_BANKROLL = 200.0
+
+# Exclude pre-calibration trades that used fabricated $0.50 Polymarket prices.
+CLEAN_TRADES_FILTER = "AND (data_quality IS NULL OR data_quality != 'fake_poly_price')"
+
+
+def get_db():
+    """Return a connection to the data database containing paper_trades."""
+    db = sqlite3.connect(str(_DATA_DB_PATH))
+    db.row_factory = sqlite3.Row
+    return db
 
 
 def full_report():
     """Generate comprehensive performance report."""
     db = get_db()
 
-    # Overall stats
-    total = db.execute("SELECT COUNT(*) as c FROM paper_trades").fetchone()['c']
-    resolved = db.execute("SELECT COUNT(*) as c FROM paper_trades WHERE outcome IS NOT NULL").fetchone()['c']
-    wins = db.execute("SELECT COUNT(*) as c FROM paper_trades WHERE outcome = 'WIN'").fetchone()['c']
-    losses = db.execute("SELECT COUNT(*) as c FROM paper_trades WHERE outcome = 'LOSS'").fetchone()['c']
-    open_count = db.execute("SELECT COUNT(*) as c FROM paper_trades WHERE outcome IS NULL").fetchone()['c']
-    total_pnl = db.execute("SELECT COALESCE(SUM(pnl), 0) as s FROM paper_trades WHERE outcome IS NOT NULL").fetchone()['s']
-    total_invested = db.execute("SELECT COALESCE(SUM(paper_amount), 0) as s FROM paper_trades WHERE outcome IS NOT NULL").fetchone()['s']
+    # Overall stats (excluding fake-price trades)
+    f = CLEAN_TRADES_FILTER
+    total = db.execute(f"SELECT COUNT(*) as c FROM paper_trades WHERE 1=1 {f}").fetchone()['c']
+    resolved = db.execute(f"SELECT COUNT(*) as c FROM paper_trades WHERE outcome IS NOT NULL {f}").fetchone()['c']
+    wins = db.execute(f"SELECT COUNT(*) as c FROM paper_trades WHERE outcome = 'WIN' {f}").fetchone()['c']
+    losses = db.execute(f"SELECT COUNT(*) as c FROM paper_trades WHERE outcome = 'LOSS' {f}").fetchone()['c']
+    open_count = db.execute(f"SELECT COUNT(*) as c FROM paper_trades WHERE outcome IS NULL {f}").fetchone()['c']
+    total_pnl = db.execute(f"SELECT COALESCE(SUM(pnl), 0) as s FROM paper_trades WHERE outcome IS NOT NULL {f}").fetchone()['s']
+    total_invested = db.execute(f"SELECT COALESCE(SUM(paper_amount), 0) as s FROM paper_trades WHERE outcome IS NOT NULL {f}").fetchone()['s']
 
     print(f"\n{'═' * 70}")
     print(f"  PAPER TRADING PERFORMANCE REPORT")
@@ -64,8 +76,9 @@ def full_report():
     # ── Brier Score ──
     print(f"\n  📐 CALIBRATION")
     print(f"  {'─' * 40}")
-    trades = db.execute("""
-        SELECT elo_probability, outcome, direction FROM paper_trades WHERE outcome IS NOT NULL
+    trades = db.execute(f"""
+        SELECT elo_probability, outcome, direction FROM paper_trades
+        WHERE outcome IS NOT NULL {CLEAN_TRADES_FILTER}
     """).fetchall()
 
     brier_sum = 0
@@ -115,8 +128,9 @@ def full_report():
     print(f"  {'─' * 40}")
 
     # Max drawdown
-    pnl_series = db.execute("""
-        SELECT pnl FROM paper_trades WHERE outcome IS NOT NULL ORDER BY resolved_at
+    pnl_series = db.execute(f"""
+        SELECT pnl FROM paper_trades
+        WHERE outcome IS NOT NULL {CLEAN_TRADES_FILTER} ORDER BY resolved_at
     """).fetchall()
     cumulative = 0
     peak = 0
@@ -131,7 +145,7 @@ def full_report():
 
     # Consecutive losses
     outcomes = [t['outcome'] for t in db.execute(
-        "SELECT outcome FROM paper_trades WHERE outcome IS NOT NULL ORDER BY resolved_at"
+        f"SELECT outcome FROM paper_trades WHERE outcome IS NOT NULL {CLEAN_TRADES_FILTER} ORDER BY resolved_at"
     ).fetchall()]
     max_streak = 0
     current_streak = 0
@@ -144,8 +158,9 @@ def full_report():
     print(f"  Max Loss Streak:    {max_streak}")
 
     # Average trade size
-    avg_size = db.execute("""
-        SELECT AVG(paper_amount) as a FROM paper_trades WHERE outcome IS NOT NULL
+    avg_size = db.execute(f"""
+        SELECT AVG(paper_amount) as a FROM paper_trades
+        WHERE outcome IS NOT NULL {CLEAN_TRADES_FILTER}
     """).fetchone()['a']
     print(f"  Avg Trade Size:     ${avg_size:.2f}")
 
@@ -193,14 +208,14 @@ def sport_breakdown(db=None, trades=None):
     print(f"  {'─' * 6} {'─' * 7} {'─' * 7} {'─' * 6} {'─' * 8} {'─' * 7}")
 
     for league in ['nba', 'nhl']:
-        stats = db.execute("""
+        stats = db.execute(f"""
             SELECT
                 COUNT(*) as total,
                 SUM(CASE WHEN outcome = 'WIN' THEN 1 ELSE 0 END) as wins,
                 SUM(CASE WHEN outcome = 'LOSS' THEN 1 ELSE 0 END) as losses,
                 COALESCE(SUM(pnl), 0) as pnl
             FROM paper_trades
-            WHERE outcome IS NOT NULL AND league = ?
+            WHERE outcome IS NOT NULL {CLEAN_TRADES_FILTER} AND league = ?
         """, (league,)).fetchone()
 
         if stats['total'] == 0:
@@ -210,9 +225,9 @@ def sport_breakdown(db=None, trades=None):
         record = f"{stats['wins']}-{stats['losses']}"
 
         # Brier for this sport
-        sport_trades = db.execute("""
+        sport_trades = db.execute(f"""
             SELECT elo_probability, outcome FROM paper_trades
-            WHERE outcome IS NOT NULL AND league = ?
+            WHERE outcome IS NOT NULL {CLEAN_TRADES_FILTER} AND league = ?
         """, (league,)).fetchall()
         brier = sum((t['elo_probability'] - (1 if t['outcome'] == 'WIN' else 0)) ** 2
                      for t in sport_trades) / len(sport_trades) if sport_trades else 0
@@ -224,14 +239,15 @@ def sport_breakdown(db=None, trades=None):
 def one_line_summary():
     """Print a single-line summary for agent use."""
     db = get_db()
-    resolved = db.execute("SELECT COUNT(*) as c FROM paper_trades WHERE outcome IS NOT NULL").fetchone()['c']
+    f = CLEAN_TRADES_FILTER
+    resolved = db.execute(f"SELECT COUNT(*) as c FROM paper_trades WHERE outcome IS NOT NULL {f}").fetchone()['c']
     if resolved == 0:
         print("Paper trading: 0 resolved trades. No data yet.")
         return
 
-    wins = db.execute("SELECT COUNT(*) as c FROM paper_trades WHERE outcome = 'WIN'").fetchone()['c']
-    pnl = db.execute("SELECT COALESCE(SUM(pnl), 0) as s FROM paper_trades WHERE outcome IS NOT NULL").fetchone()['s']
-    trades = db.execute("SELECT elo_probability, outcome FROM paper_trades WHERE outcome IS NOT NULL").fetchall()
+    wins = db.execute(f"SELECT COUNT(*) as c FROM paper_trades WHERE outcome = 'WIN' {f}").fetchone()['c']
+    pnl = db.execute(f"SELECT COALESCE(SUM(pnl), 0) as s FROM paper_trades WHERE outcome IS NOT NULL {f}").fetchone()['s']
+    trades = db.execute(f"SELECT elo_probability, outcome FROM paper_trades WHERE outcome IS NOT NULL {f}").fetchall()
     brier = sum((t['elo_probability'] - (1 if t['outcome'] == 'WIN' else 0)) ** 2 for t in trades) / len(trades)
 
     print(f"Paper: {resolved} trades, {wins}W-{resolved-wins}L ({wins/resolved*100:.0f}%), "

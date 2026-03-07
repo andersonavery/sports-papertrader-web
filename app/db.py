@@ -3,6 +3,10 @@ from app.settings import DB_PATH
 
 VIRTUAL_BANKROLL = 200.0
 
+# Exclude pre-calibration trades that used fabricated $0.50 Polymarket prices.
+# Shared filter clause — append to any WHERE on paper_trades for clean metrics.
+CLEAN_TRADES_FILTER = "AND (data_quality IS NULL OR data_quality != 'fake_poly_price')"
+
 
 def get_conn():
     conn = sqlite3.connect(str(DB_PATH))
@@ -88,27 +92,30 @@ def get_elo_ratings(league):
 
 def get_summary_stats():
     conn = get_conn()
-    total = conn.execute("SELECT COUNT(*) as c FROM paper_trades").fetchone()["c"]
+    f = CLEAN_TRADES_FILTER
+    total = conn.execute(
+        f"SELECT COUNT(*) as c FROM paper_trades WHERE 1=1 {f}"
+    ).fetchone()["c"]
     resolved = conn.execute(
-        "SELECT COUNT(*) as c FROM paper_trades WHERE outcome IS NOT NULL"
+        f"SELECT COUNT(*) as c FROM paper_trades WHERE outcome IS NOT NULL {f}"
     ).fetchone()["c"]
     wins = conn.execute(
-        "SELECT COUNT(*) as c FROM paper_trades WHERE outcome = 'WIN'"
+        f"SELECT COUNT(*) as c FROM paper_trades WHERE outcome = 'WIN' {f}"
     ).fetchone()["c"]
     losses = conn.execute(
-        "SELECT COUNT(*) as c FROM paper_trades WHERE outcome = 'LOSS'"
+        f"SELECT COUNT(*) as c FROM paper_trades WHERE outcome = 'LOSS' {f}"
     ).fetchone()["c"]
     open_count = conn.execute(
-        "SELECT COUNT(*) as c FROM paper_trades WHERE outcome IS NULL"
+        f"SELECT COUNT(*) as c FROM paper_trades WHERE outcome IS NULL {f}"
     ).fetchone()["c"]
     total_pnl = conn.execute(
-        "SELECT COALESCE(SUM(pnl), 0) as s FROM paper_trades WHERE outcome IS NOT NULL"
+        f"SELECT COALESCE(SUM(pnl), 0) as s FROM paper_trades WHERE outcome IS NOT NULL {f}"
     ).fetchone()["s"]
     total_invested = conn.execute(
-        "SELECT COALESCE(SUM(paper_amount), 0) as s FROM paper_trades WHERE outcome IS NOT NULL"
+        f"SELECT COALESCE(SUM(paper_amount), 0) as s FROM paper_trades WHERE outcome IS NOT NULL {f}"
     ).fetchone()["s"]
     open_invested = conn.execute(
-        "SELECT COALESCE(SUM(paper_amount), 0) as s FROM paper_trades WHERE outcome IS NULL"
+        f"SELECT COALESCE(SUM(paper_amount), 0) as s FROM paper_trades WHERE outcome IS NULL {f}"
     ).fetchone()["s"]
     conn.close()
 
@@ -133,7 +140,7 @@ def get_summary_stats():
 def get_pnl_series():
     conn = get_conn()
     rows = conn.execute(
-        "SELECT date, pnl FROM paper_trades WHERE outcome IS NOT NULL ORDER BY resolved_at"
+        f"SELECT date, pnl FROM paper_trades WHERE outcome IS NOT NULL {CLEAN_TRADES_FILTER} ORDER BY resolved_at"
     ).fetchall()
     conn.close()
 
@@ -148,7 +155,7 @@ def get_pnl_series():
 def get_calibration_data():
     conn = get_conn()
     rows = conn.execute(
-        "SELECT elo_probability, outcome FROM paper_trades WHERE outcome IS NOT NULL"
+        f"SELECT elo_probability, outcome FROM paper_trades WHERE outcome IS NOT NULL {CLEAN_TRADES_FILTER}"
     ).fetchall()
     conn.close()
 
@@ -182,19 +189,20 @@ def get_calibration_data():
 def get_sport_breakdown():
     conn = get_conn()
     breakdown = []
+    f = CLEAN_TRADES_FILTER
     for league in ["nba", "nhl", "cbb", "mls"]:
-        stats = conn.execute("""
+        stats = conn.execute(f"""
             SELECT
                 COUNT(*) as total,
                 SUM(CASE WHEN outcome = 'WIN' THEN 1 ELSE 0 END) as wins,
                 SUM(CASE WHEN outcome = 'LOSS' THEN 1 ELSE 0 END) as losses,
                 COALESCE(SUM(pnl), 0) as pnl
-            FROM paper_trades WHERE outcome IS NOT NULL AND league = ?
+            FROM paper_trades WHERE outcome IS NOT NULL {f} AND league = ?
         """, (league,)).fetchone()
         if stats["total"] > 0:
             # Brier per sport
             trades = conn.execute(
-                "SELECT elo_probability, outcome FROM paper_trades WHERE outcome IS NOT NULL AND league = ?",
+                f"SELECT elo_probability, outcome FROM paper_trades WHERE outcome IS NOT NULL {f} AND league = ?",
                 (league,),
             ).fetchall()
             brier = sum(
@@ -216,14 +224,15 @@ def get_sport_breakdown():
 
 def get_risk_metrics():
     conn = get_conn()
+    f = CLEAN_TRADES_FILTER
     pnl_rows = conn.execute(
-        "SELECT pnl FROM paper_trades WHERE outcome IS NOT NULL ORDER BY resolved_at"
+        f"SELECT pnl FROM paper_trades WHERE outcome IS NOT NULL {f} ORDER BY resolved_at"
     ).fetchall()
     outcomes = conn.execute(
-        "SELECT outcome FROM paper_trades WHERE outcome IS NOT NULL ORDER BY resolved_at"
+        f"SELECT outcome FROM paper_trades WHERE outcome IS NOT NULL {f} ORDER BY resolved_at"
     ).fetchall()
     avg_size = conn.execute(
-        "SELECT AVG(paper_amount) as a FROM paper_trades WHERE outcome IS NOT NULL"
+        f"SELECT AVG(paper_amount) as a FROM paper_trades WHERE outcome IS NOT NULL {f}"
     ).fetchone()
     conn.close()
 
