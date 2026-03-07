@@ -212,6 +212,8 @@ When you create a PR, you own it through to merge. Do not consider your work don
 - **Delete branch on merge** — always use `--delete-branch` flag
 - **Close issues** — verify issues auto-closed via `Fixes #N`; if using `Refs #N`, close manually after merge
 - **No unrelated changes** — if a file is not part of the dispatched task, do not modify it
+- **Clean code before pushing** — remove unused imports, dead code, and debug statements before every push. These are the #1 source of review round-trips. Run the project's linter if one exists.
+- **Config files land independently** — never commit agent config changes (`.github/agents/*.agent.md`) on feature branches. Config is infrastructure; if a feature PR is reverted, config must survive. Commit config changes to `main` directly or via a dedicated config PR.
 
 ## PR Review Comment Protocol
 
