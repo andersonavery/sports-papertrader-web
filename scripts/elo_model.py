@@ -32,7 +32,9 @@ DATA_DIR = Path(__file__).parent / "data"
 ELO_CONFIG = {
     "nba": {
         "k_factor": 20,
-        "home_advantage": 100,
+        "home_advantage": 45,      # calibrated to 2024-26 data: 53.85% home win rate
+                                   # across 2,156 games. Brier-optimal HA=45 (0.2299).
+                                   # was 100 (~64% implied); 45 → ~56.4% for equal teams.
         "initial_rating": 1500,
         "season_regression": 1/3,  # regress 1/3 toward mean at season start
         "mov_multiplier": True,    # margin-of-victory adjustment
