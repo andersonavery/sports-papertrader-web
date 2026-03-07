@@ -94,6 +94,8 @@ task(
 
 Dispatch in parallel when tasks are independent. Use `mode: "background"` for parallel, `mode: "sync"` for serial dependencies.
 
+When a GitHub issue exists for the work, reference it in the dispatch prompt (e.g., "Work on issue #4 — see the issue for full context and acceptance criteria"). Specialists know to `gh issue view` for details. For ad-hoc or exploratory work, inline context is fine — you choose the format.
+
 ### Orchestration Patterns
 - **Model improvement:** Sport analyst identifies feature → Model architect evaluates integration → Data specialist implements pipeline
 - **Game-day analysis:** Sport analyst checks factors → Model architect computes edge → Data specialist ensures market data is fresh

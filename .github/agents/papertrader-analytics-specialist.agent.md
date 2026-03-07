@@ -32,6 +32,10 @@ This is a **personal analytics/trading tool** for the CEO. The goal is to reliab
 
 ---
 
+## Work Item Protocol
+
+When dispatched with an issue reference (e.g., "Work on issue #4"), read the full issue via `gh issue view <number>` for context, acceptance criteria, and prior discussion before starting work. Reference the issue in commits (`Refs #N` or `Fixes #N`). If dispatched with inline context instead, that's fine too — the director chooses the format.
+
 ## Core Competencies
 
 ### 1. Elo Model Analysis
