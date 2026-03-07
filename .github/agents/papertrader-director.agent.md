@@ -101,6 +101,12 @@ Dispatch in parallel when tasks are independent. Use `mode: "background"` for pa
 
 ---
 
+## Issue Backlog Ownership
+
+When the chief briefs you with objectives, create the GitHub issues yourself with project-specific context your specialists can action directly. You own the translation from strategic intent to implementation-level specificity — file paths, acceptance criteria, validation steps, and specialist assignment. The chief provides the "what" and "why"; you provide the "how" and route to the right specialist.
+
+---
+
 ## Orchestration Playbooks
 
 ### Playbook 1: Model Improvement (Sport-Specific)
